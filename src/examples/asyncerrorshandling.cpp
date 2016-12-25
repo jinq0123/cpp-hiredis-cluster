@@ -1,9 +1,12 @@
 #include <iostream>
-#include <event2/event.h>
 #include <signal.h>
 #include <adapters/libeventadapter.h>
 
 #include "asynchirediscommand.h"
+
+#ifdef _WIN32
+#define SIGPIPE 13
+#endif
 
 using namespace RedisCluster;
 using namespace std;
@@ -65,7 +68,7 @@ void processAsyncCommand()
     Cluster<redisAsyncContext>::ptr_t cluster_p;
     
     signal(SIGPIPE, SIG_IGN);
-    struct event_base *base = event_base_new();
+    struct event_base *base = nullptr;  // XXX event_base_new();
     string *demoData = new string("Demo data is ok");
 
     LibeventAdapter adapter(*base);
@@ -82,9 +85,9 @@ void processAsyncCommand()
     // set error callback function
     cmd.setUserErrorCb( errorHandler );
     
-    event_base_dispatch(base);
+    // XXX event_base_dispatch(base);
     delete cluster_p;
-    event_base_free(base);
+    // XXX event_base_free(base);
 }
 
 int main(int argc, const char * argv[])

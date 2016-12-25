@@ -1,0 +1,8 @@
+/deps
+/bin
+/build/.vs
+/build/obj
+/build/cpp-hiredis-cluster.sdf
+/build/cpp-hiredis-cluster.VC.opendb
+/build/*.lib
+/build/*.exe
