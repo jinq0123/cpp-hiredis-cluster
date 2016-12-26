@@ -1,0 +1,2 @@
+1>hiredis.lib(hiredis.obj) : error LNK2019: 无法解析的外部符号 _strerror_r，该符号在函数 ___redisSetError 中被引用
+1>hiredis.lib(async.obj) : error LNK2001: 无法解析的外部符号 _strerror_r

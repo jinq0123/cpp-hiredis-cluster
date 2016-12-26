@@ -33,13 +33,14 @@ project "asyncexample"
 		"../include",
 		"../deps",
 		"../deps/hiredis",
-		"E:/ThirdParty/boost_1_60_0",
+		"../deps/boost",
 	}
 	libdirs {
 		"../deps/hiredis/Debug",
-		"E:/ThirdParty/boost_1_60_0/stage/lib",
+		"../deps/boost/lib",
 	}
 	links {
 		"hiredis",
+		"ws2_32",
 	}
 	

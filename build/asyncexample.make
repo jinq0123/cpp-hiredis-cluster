@@ -16,15 +16,15 @@ ifeq ($(config),debug)
   TARGET = $(TARGETDIR)/asyncexample
   OBJDIR = obj/Debug
   DEFINES +=
-  INCLUDES += -I../include -I../deps -I../deps/hiredis -IE:/ThirdParty/boost_1_60_0
+  INCLUDES += -I../include -I../deps -I../deps/hiredis -I../deps/boost
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -g
   ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS) -std=c++11
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  LIBS += -lhiredis
+  LIBS += -lhiredis -lws2_32
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L../deps/hiredis/Debug -LE:/ThirdParty/boost_1_60_0/stage/lib
+  ALL_LDFLAGS += $(LDFLAGS) -L../deps/hiredis/Debug -L../deps/boost/lib
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -43,15 +43,15 @@ ifeq ($(config),release)
   TARGET = $(TARGETDIR)/asyncexample
   OBJDIR = obj/Release
   DEFINES += -DNDEBUG
-  INCLUDES += -I../include -I../deps -I../deps/hiredis -IE:/ThirdParty/boost_1_60_0
+  INCLUDES += -I../include -I../deps -I../deps/hiredis -I../deps/boost
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O2
   ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS) -std=c++11
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  LIBS += -lhiredis
+  LIBS += -lhiredis -lws2_32
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L../deps/hiredis/Debug -LE:/ThirdParty/boost_1_60_0/stage/lib -s
+  ALL_LDFLAGS += $(LDFLAGS) -L../deps/hiredis/Debug -L../deps/boost/lib -s
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
