@@ -95,6 +95,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\include\adapters\adapter.h" />
+    <ClInclude Include="..\include\adapters\boostasioadapter.h" />
     <ClInclude Include="..\include\asynchirediscommand.h" />
     <ClInclude Include="..\include\cluster.h" />
     <ClInclude Include="..\include\clusterexception.h" />

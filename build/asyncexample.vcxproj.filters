@@ -21,6 +21,9 @@
     <ClInclude Include="..\include\adapters\adapter.h">
       <Filter>include\adapters</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\adapters\boostasioadapter.h">
+      <Filter>include\adapters</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\asynchirediscommand.h">
       <Filter>include</Filter>
     </ClInclude>

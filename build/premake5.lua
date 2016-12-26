@@ -27,6 +27,7 @@ project "asyncexample"
 		"../src/examples/hiredis-boostasio-adapter/*",
 		"../include/*.h",
 		"../include/adapters/adapter.h",
+		"../include/adapters/boostasioadapter.h",
 	}    
 	includedirs {
 		"../include",
