@@ -5,17 +5,10 @@ Usage:
 	linux:  premake5.exe --os=linux gmake
 ]]
 
-hiredis_windows_dir = "../deps/hiredis-0.13.3-windows"
-
 workspace "cpp-hiredis-cluster"
 	configurations { "Debug", "Release" }
 	targetdir "../bin/%{cfg.buildcfg}"
 	language "C++"
-	includedirs {
-		"../include",
-		hiredis_windows_dir,
-		hiredis_windows_dir.."/hiredis",
-	}
 	flags {
 		"C++11",
 		"StaticRuntime",
@@ -31,12 +24,20 @@ project "asyncexample"
 	kind "ConsoleApp"
 	files {
 		"../src/examples/asyncexample.cpp",
-		hiredis_windows_dir.."/hiredis/msvs/deps/ad*",
-		hiredis_windows_dir.."/hiredis/msvs/deps/ae.*",
+		"../src/examples/hiredis-boostasio-adapter/*",
 		"../include/*.h",
 	}    
+	includedirs {
+		"../include",
+		"../deps",
+		"../deps/hiredis",
+		"E:/ThirdParty/boost_1_60_0",
+	}
+	libdirs {
+		"../deps/hiredis/Debug",
+		"E:/ThirdParty/boost_1_60_0/stage/lib",
+	}
 	links {
 		"hiredis",
-		"win32_interop",
 	}
 	

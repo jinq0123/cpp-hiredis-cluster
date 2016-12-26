@@ -6,3 +6,5 @@
 /build/cpp-hiredis-cluster.VC.opendb
 /build/*.lib
 /build/*.exe
+/build/cpp-hiredis-cluster.VC.VC.opendb
+/build/cpp-hiredis-cluster.VC.db

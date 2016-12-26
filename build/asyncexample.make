@@ -16,15 +16,15 @@ ifeq ($(config),debug)
   TARGET = $(TARGETDIR)/asyncexample
   OBJDIR = obj/Debug
   DEFINES +=
-  INCLUDES += -I../include -I../deps/hiredis-0.13.3-windows -I../deps/hiredis-0.13.3-windows/hiredis
+  INCLUDES += -I../include -I../deps -I../deps/hiredis -IE:/ThirdParty/boost_1_60_0
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -g
   ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS) -std=c++11
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  LIBS += -lhiredis -lwin32_interop
+  LIBS += -lhiredis
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS)
+  ALL_LDFLAGS += $(LDFLAGS) -L../deps/hiredis/Debug -LE:/ThirdParty/boost_1_60_0/stage/lib
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -43,15 +43,15 @@ ifeq ($(config),release)
   TARGET = $(TARGETDIR)/asyncexample
   OBJDIR = obj/Release
   DEFINES += -DNDEBUG
-  INCLUDES += -I../include -I../deps/hiredis-0.13.3-windows -I../deps/hiredis-0.13.3-windows/hiredis
+  INCLUDES += -I../include -I../deps -I../deps/hiredis -IE:/ThirdParty/boost_1_60_0
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O2
   ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS) -std=c++11
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  LIBS += -lhiredis -lwin32_interop
+  LIBS += -lhiredis
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -s
+  ALL_LDFLAGS += $(LDFLAGS) -L../deps/hiredis/Debug -LE:/ThirdParty/boost_1_60_0/stage/lib -s
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -65,9 +65,8 @@ all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
 endif
 
 OBJECTS := \
-	$(OBJDIR)/adlist.o \
-	$(OBJDIR)/ae.o \
 	$(OBJDIR)/asyncexample.o \
+	$(OBJDIR)/boostasio.o \
 
 RESOURCES := \
 
@@ -125,13 +124,10 @@ $(GCH): $(PCH)
 	$(SILENT) $(CXX) -x c++-header $(ALL_CXXFLAGS) -o "$@" -MF "$(@:%.gch=%.d)" -c "$<"
 endif
 
-$(OBJDIR)/adlist.o: ../deps/hiredis-0.13.3-windows/hiredis/msvs/deps/adlist.c
-	@echo $(notdir $<)
-	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/ae.o: ../deps/hiredis-0.13.3-windows/hiredis/msvs/deps/ae.c
-	@echo $(notdir $<)
-	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/asyncexample.o: ../src/examples/asyncexample.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/boostasio.o: ../src/examples/hiredis-boostasio-adapter/boostasio.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 

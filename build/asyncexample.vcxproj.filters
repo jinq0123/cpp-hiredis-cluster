@@ -1,21 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="deps">
-      <UniqueIdentifier>{F1A1957C-DDD8-960D-86C5-7C1072DB120F}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="deps\hiredis-0.13.3-windows">
-      <UniqueIdentifier>{50A46606-BCB1-94EC-4598-90D7B1A460A3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="deps\hiredis-0.13.3-windows\hiredis">
-      <UniqueIdentifier>{2765A2CE-931E-0D79-1C7E-27538836C3E8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="deps\hiredis-0.13.3-windows\hiredis\msvs">
-      <UniqueIdentifier>{5FF3723B-4B70-667E-74ED-669260C90212}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="deps\hiredis-0.13.3-windows\hiredis\msvs\deps">
-      <UniqueIdentifier>{DAF867E9-4669-6A62-0F88-E4EA7BB7A263}</UniqueIdentifier>
-    </Filter>
     <Filter Include="include">
       <UniqueIdentifier>{89AF369E-F58E-B539-FEA6-40106A051C9B}</UniqueIdentifier>
     </Filter>
@@ -25,14 +10,11 @@
     <Filter Include="src\examples">
       <UniqueIdentifier>{7BDBAAE1-673E-3A86-10C4-723CFC050609}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\examples\hiredis-boostasio-adapter">
+      <UniqueIdentifier>{C0227C2F-AC74-531F-9593-902F81846C08}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\deps\hiredis-0.13.3-windows\hiredis\msvs\deps\adlist.h">
-      <Filter>deps\hiredis-0.13.3-windows\hiredis\msvs\deps</Filter>
-    </ClInclude>
-    <ClInclude Include="..\deps\hiredis-0.13.3-windows\hiredis\msvs\deps\ae.h">
-      <Filter>deps\hiredis-0.13.3-windows\hiredis\msvs\deps</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\asynchirediscommand.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -54,16 +36,16 @@
     <ClInclude Include="..\include\slothash.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\examples\hiredis-boostasio-adapter\boostasio.hpp">
+      <Filter>src\examples\hiredis-boostasio-adapter</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\deps\hiredis-0.13.3-windows\hiredis\msvs\deps\adlist.c">
-      <Filter>deps\hiredis-0.13.3-windows\hiredis\msvs\deps</Filter>
-    </ClCompile>
-    <ClCompile Include="..\deps\hiredis-0.13.3-windows\hiredis\msvs\deps\ae.c">
-      <Filter>deps\hiredis-0.13.3-windows\hiredis\msvs\deps</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\examples\asyncexample.cpp">
       <Filter>src\examples</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\examples\hiredis-boostasio-adapter\boostasio.cpp">
+      <Filter>src\examples\hiredis-boostasio-adapter</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
