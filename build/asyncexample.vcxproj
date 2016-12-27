@@ -94,6 +94,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\deps\hiredis-boostasio-adapter\boostasio.hpp" />
     <ClInclude Include="..\include\adapters\adapter.h" />
     <ClInclude Include="..\include\adapters\boostasioadapter.h" />
     <ClInclude Include="..\include\asynchirediscommand.h" />
@@ -103,11 +104,10 @@
     <ClInclude Include="..\include\hirediscommand.h" />
     <ClInclude Include="..\include\hiredisprocess.h" />
     <ClInclude Include="..\include\slothash.h" />
-    <ClInclude Include="..\src\examples\hiredis-boostasio-adapter\boostasio.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\deps\hiredis-boostasio-adapter\boostasio.cpp" />
     <ClCompile Include="..\src\examples\asyncexample.cpp" />
-    <ClCompile Include="..\src\examples\hiredis-boostasio-adapter\boostasio.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

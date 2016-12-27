@@ -65,8 +65,8 @@ all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
 endif
 
 OBJECTS := \
-	$(OBJDIR)/asyncexample.o \
 	$(OBJDIR)/boostasio.o \
+	$(OBJDIR)/asyncexample.o \
 
 RESOURCES := \
 
@@ -124,10 +124,10 @@ $(GCH): $(PCH)
 	$(SILENT) $(CXX) -x c++-header $(ALL_CXXFLAGS) -o "$@" -MF "$(@:%.gch=%.d)" -c "$<"
 endif
 
-$(OBJDIR)/asyncexample.o: ../src/examples/asyncexample.cpp
+$(OBJDIR)/boostasio.o: ../deps/hiredis-boostasio-adapter/boostasio.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/boostasio.o: ../src/examples/hiredis-boostasio-adapter/boostasio.cpp
+$(OBJDIR)/asyncexample.o: ../src/examples/asyncexample.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 

@@ -24,7 +24,7 @@ project "asyncexample"
 	kind "ConsoleApp"
 	files {
 		"../src/examples/asyncexample.cpp",
-		"../src/examples/hiredis-boostasio-adapter/*",
+		"../deps/hiredis-boostasio-adapter/boostasio.*",
 		"../include/*.h",
 		"../include/adapters/adapter.h",
 		"../include/adapters/boostasioadapter.h",

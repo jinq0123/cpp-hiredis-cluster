@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="deps">
+      <UniqueIdentifier>{F1A1957C-DDD8-960D-86C5-7C1072DB120F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\hiredis-boostasio-adapter">
+      <UniqueIdentifier>{B620B32C-A246-7D93-8B8C-025F7751A25F}</UniqueIdentifier>
+    </Filter>
     <Filter Include="include">
       <UniqueIdentifier>{89AF369E-F58E-B539-FEA6-40106A051C9B}</UniqueIdentifier>
     </Filter>
@@ -13,11 +19,11 @@
     <Filter Include="src\examples">
       <UniqueIdentifier>{7BDBAAE1-673E-3A86-10C4-723CFC050609}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\examples\hiredis-boostasio-adapter">
-      <UniqueIdentifier>{C0227C2F-AC74-531F-9593-902F81846C08}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\deps\hiredis-boostasio-adapter\boostasio.hpp">
+      <Filter>deps\hiredis-boostasio-adapter</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\adapters\adapter.h">
       <Filter>include\adapters</Filter>
     </ClInclude>
@@ -45,16 +51,13 @@
     <ClInclude Include="..\include\slothash.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\examples\hiredis-boostasio-adapter\boostasio.hpp">
-      <Filter>src\examples\hiredis-boostasio-adapter</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\deps\hiredis-boostasio-adapter\boostasio.cpp">
+      <Filter>deps\hiredis-boostasio-adapter</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\examples\asyncexample.cpp">
       <Filter>src\examples</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\examples\hiredis-boostasio-adapter\boostasio.cpp">
-      <Filter>src\examples\hiredis-boostasio-adapter</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
