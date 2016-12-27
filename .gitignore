@@ -1,4 +1,3 @@
-/deps
 /bin
 /build/.vs
 /build/obj
@@ -8,3 +7,6 @@
 /build/*.exe
 /build/cpp-hiredis-cluster.VC.VC.opendb
 /build/cpp-hiredis-cluster.VC.db
+/deps/boost
+/deps/hiredis
+/deps/hiredis-boostasio-adapter
