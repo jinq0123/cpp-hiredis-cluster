@@ -115,7 +115,7 @@ void processAsyncCommand()
 ## Installing:
 * This is a header only library! No need to install, just include headers in your project
 * Run cmake if you want to build examples
-* Also you can use use Premake to build. See build/ReadMe.md.
+* Also you can use use Premake to build. See [build/ReadMe.md](build/ReadMe.md).
 
 ### Issuses:
 * If you have link errors for hiredis sds functions just wrap all hiredis headers in extern C in your project
