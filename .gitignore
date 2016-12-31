@@ -10,3 +10,4 @@
 /deps/boost
 /deps/hiredis
 /deps/hiredis-boostasio-adapter
+/deps/libevent

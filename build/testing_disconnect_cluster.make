@@ -16,7 +16,7 @@ ifeq ($(config),debug)
   TARGET = $(TARGETDIR)/testing_disconnect_cluster
   OBJDIR = obj/Debug/testing_disconnect_cluster
   DEFINES +=
-  INCLUDES += -I../include -I../deps -I../deps/hiredis -I../deps/boost
+  INCLUDES += -I../include -I../deps -I../deps/hiredis -I../deps/boost -I../deps/libevent/include
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -g
@@ -43,7 +43,7 @@ ifeq ($(config),release)
   TARGET = $(TARGETDIR)/testing_disconnect_cluster
   OBJDIR = obj/Release/testing_disconnect_cluster
   DEFINES += -DNDEBUG
-  INCLUDES += -I../include -I../deps -I../deps/hiredis -I../deps/boost
+  INCLUDES += -I../include -I../deps -I../deps/hiredis -I../deps/boost -I../deps/libevent/include
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O2

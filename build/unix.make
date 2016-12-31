@@ -16,7 +16,7 @@ ifeq ($(config),debug)
   TARGET = $(TARGETDIR)/unix
   OBJDIR = obj/Debug/unix
   DEFINES +=
-  INCLUDES += -I../include -I../deps -I../deps/hiredis -I../deps/boost
+  INCLUDES += -I../include -I../deps -I../deps/hiredis -I../deps/boost -I../deps/libevent/include
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -g
@@ -43,7 +43,7 @@ ifeq ($(config),release)
   TARGET = $(TARGETDIR)/unix
   OBJDIR = obj/Release/unix
   DEFINES += -DNDEBUG
-  INCLUDES += -I../include -I../deps -I../deps/hiredis -I../deps/boost
+  INCLUDES += -I../include -I../deps -I../deps/hiredis -I../deps/boost -I../deps/libevent/include
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O2

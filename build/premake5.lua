@@ -23,6 +23,7 @@ workspace "cpp-hiredis-cluster"
 		"../deps",
 		"../deps/hiredis",
 		"../deps/boost",
+		"../deps/libevent/include",
 	}
 	libdirs {
 		"../deps/boost/lib",
