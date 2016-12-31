@@ -49,9 +49,9 @@ void processAsyncCommand()
     signal(SIGPIPE, SIG_IGN);
     string *demoData = new string("Demo data is ok");
     
-    cluster_p = AsyncHiredisCommand<>::createCluster( "127.0.0.1", 7000, adapter );
+    cluster_p = AsyncHiredisCommand::createCluster( "127.0.0.1", 7000, adapter );
     
-    AsyncHiredisCommand<>::Command( cluster_p,
+    AsyncHiredisCommand::Command( cluster_p,
                                  "FOO",
                                  setCallback,
                                  static_cast<void*>( demoData ),

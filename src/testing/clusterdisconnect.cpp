@@ -47,11 +47,11 @@ void processAsyncCommand()
     struct event_base *base = event_base_new();
 
     LibeventAdapter adapter(*base);
-    cluster_p = AsyncHiredisCommand<>::createCluster( "192.168.33.10", 7000, adapter);
+    cluster_p = AsyncHiredisCommand::createCluster( "192.168.33.10", 7000, adapter);
     
     while (true) {
         string *demoData = new string("Demo data is ok");
-        AsyncHiredisCommand<>::Command( cluster_p,
+        AsyncHiredisCommand::Command( cluster_p,
                                            "FOO",
                                            setCallback,
                                            static_cast<void*>( demoData ),

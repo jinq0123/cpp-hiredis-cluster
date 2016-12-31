@@ -47,9 +47,9 @@ namespace RedisCluster
     using std::string;
     
     // Asynchronous command class. Use Adapter to adapt different event library.
-    template < typename Cluster = Cluster<redisAsyncContext> >
     class AsyncHiredisCommand
     {
+        typedef Cluster<redisAsyncContext> Cluster;
         typedef redisAsyncContext Connection;
         enum CommandType
         {
@@ -78,12 +78,12 @@ namespace RedisCluster
         
         typedef void (*pt2AsyncAttachFn)( Connection*, void * );
         typedef void (redisCallbackFn)( typename Cluster::ptr_t cluster_p, void*, void* );
-        typedef Action (userErrorCallbackFn)( const AsyncHiredisCommand<Cluster> &,
+        typedef Action (userErrorCallbackFn)( const AsyncHiredisCommand &,
                                                       const ClusterException &,
                                                       HiredisProcess::processState );
         
         
-        static inline AsyncHiredisCommand<Cluster>& Command( typename Cluster::ptr_t cluster_p,
+        static inline AsyncHiredisCommand& Command( typename Cluster::ptr_t cluster_p,
                                         string key,
                                         redisCallbackFn userCb,
                                         void *userPrivData,
@@ -92,7 +92,7 @@ namespace RedisCluster
                                         const size_t *argvlen )
         {
             // would be deleted in redis reply callback or in case of error
-            AsyncHiredisCommand<Cluster> *c = new AsyncHiredisCommand<Cluster>( cluster_p, key, userCb, userPrivData, argc, argv, argvlen );
+            AsyncHiredisCommand *c = new AsyncHiredisCommand( cluster_p, key, userCb, userPrivData, argc, argv, argvlen );
             if( c->process() != REDIS_OK )
             {
                 delete c;
@@ -101,7 +101,7 @@ namespace RedisCluster
             return *c;
         }
         
-        static inline AsyncHiredisCommand<Cluster>& Command( typename Cluster::ptr_t cluster_p,
+        static inline AsyncHiredisCommand& Command( typename Cluster::ptr_t cluster_p,
                                         string key,
                                         redisCallbackFn userCb,
                                         void *userPrivData,
@@ -110,7 +110,7 @@ namespace RedisCluster
             va_list ap;
             va_start(ap, format);
             // would be deleted in redis reply callback or in case of error
-            AsyncHiredisCommand<Cluster> *c = new AsyncHiredisCommand<Cluster>( cluster_p, key, userCb, userPrivData, format, ap );
+            AsyncHiredisCommand *c = new AsyncHiredisCommand( cluster_p, key, userCb, userPrivData, format, ap );
             if( c->process() != REDIS_OK )
             {
                 delete c;
@@ -120,14 +120,14 @@ namespace RedisCluster
             return *c;
         }
         
-        static inline AsyncHiredisCommand<Cluster>& Command( typename Cluster::ptr_t cluster_p,
+        static inline AsyncHiredisCommand& Command( typename Cluster::ptr_t cluster_p,
                                                    string key,
                                                    redisCallbackFn userCb,
                                                    void *userPrivData,
                                                    const char *format, va_list ap )
         {
             // would be deleted in redis reply callback or in case of error
-            AsyncHiredisCommand<Cluster> *c = new AsyncHiredisCommand<Cluster>( cluster_p, key, userCb, userPrivData, format, ap );
+            AsyncHiredisCommand *c = new AsyncHiredisCommand( cluster_p, key, userCb, userPrivData, format, ap );
             if( c->process() != REDIS_OK )
             {
                 delete c;
@@ -256,7 +256,7 @@ namespace RedisCluster
         static void askingCallback( Connection* con, void *r, void *data )
         {
             redisReply *reply = static_cast<redisReply*>(r);
-            AsyncHiredisCommand<Cluster>* that = static_cast<AsyncHiredisCommand<Cluster>*>( data );
+            AsyncHiredisCommand* that = static_cast<AsyncHiredisCommand*>( data );
             Action commandState = ASK;
 
             try
@@ -302,7 +302,7 @@ namespace RedisCluster
         static void processCommandReply( Connection* con, void *r, void *data )
         {
             redisReply *reply = static_cast< redisReply* >(r);
-            AsyncHiredisCommand<Cluster>* that = static_cast<AsyncHiredisCommand<Cluster>*>( data );
+            AsyncHiredisCommand* that = static_cast<AsyncHiredisCommand*>( data );
             Action commandState = FINISH;
             HiredisProcess::processState state = HiredisProcess::FAILED;
             string host, port;
@@ -360,7 +360,7 @@ namespace RedisCluster
         
         static void retry( Connection *con, void *r, void *data )
         {
-            AsyncHiredisCommand<Cluster>* that = static_cast<AsyncHiredisCommand<Cluster>*>( data );
+            AsyncHiredisCommand* that = static_cast<AsyncHiredisCommand*>( data );
             
             if( that->processHiredisCommand( con ) != REDIS_OK )
             {
