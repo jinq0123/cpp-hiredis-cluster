@@ -13,8 +13,8 @@ endif
 ifeq ($(config),debug)
   RESCOMP = windres
   TARGETDIR = ../bin/Debug
-  TARGET = $(TARGETDIR)/asyncexample
-  OBJDIR = obj/Debug
+  TARGET = $(TARGETDIR)/unix
+  OBJDIR = obj/Debug/unix
   DEFINES +=
   INCLUDES += -I../include -I../deps -I../deps/hiredis -I../deps/boost
   FORCE_INCLUDE +=
@@ -22,9 +22,9 @@ ifeq ($(config),debug)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -g
   ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS) -std=c++11
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  LIBS += -lhiredis -lws2_32
+  LIBS +=
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L../deps/hiredis/Debug -L../deps/boost/lib
+  ALL_LDFLAGS += $(LDFLAGS) -L../deps/boost/lib -L../deps/hiredis/Debug
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -40,8 +40,8 @@ endif
 ifeq ($(config),release)
   RESCOMP = windres
   TARGETDIR = ../bin/Release
-  TARGET = $(TARGETDIR)/asyncexample
-  OBJDIR = obj/Release
+  TARGET = $(TARGETDIR)/unix
+  OBJDIR = obj/Release/unix
   DEFINES += -DNDEBUG
   INCLUDES += -I../include -I../deps -I../deps/hiredis -I../deps/boost
   FORCE_INCLUDE +=
@@ -49,9 +49,9 @@ ifeq ($(config),release)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O2
   ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS) -std=c++11
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  LIBS += -lhiredis -lws2_32
+  LIBS +=
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L../deps/hiredis/Debug -L../deps/boost/lib -s
+  ALL_LDFLAGS += $(LDFLAGS) -L../deps/boost/lib -L../deps/hiredis/Release -s
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -65,8 +65,7 @@ all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
 endif
 
 OBJECTS := \
-	$(OBJDIR)/boostasio.o \
-	$(OBJDIR)/asyncexample.o \
+	$(OBJDIR)/unixsocketexample.o \
 
 RESOURCES := \
 
@@ -81,7 +80,7 @@ ifeq (/bin,$(findstring /bin,$(SHELL)))
 endif
 
 $(TARGET): $(GCH) ${CUSTOMFILES} $(OBJECTS) $(LDDEPS) $(RESOURCES)
-	@echo Linking asyncexample
+	@echo Linking unix
 	$(SILENT) $(LINKCMD)
 	$(POSTBUILDCMDS)
 
@@ -102,7 +101,7 @@ else
 endif
 
 clean:
-	@echo Cleaning asyncexample
+	@echo Cleaning unix
 ifeq (posix,$(SHELLTYPE))
 	$(SILENT) rm -f  $(TARGET)
 	$(SILENT) rm -rf $(OBJDIR)
@@ -124,10 +123,7 @@ $(GCH): $(PCH)
 	$(SILENT) $(CXX) -x c++-header $(ALL_CXXFLAGS) -o "$@" -MF "$(@:%.gch=%.d)" -c "$<"
 endif
 
-$(OBJDIR)/boostasio.o: ../deps/hiredis-boostasio-adapter/boostasio.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/asyncexample.o: ../src/examples/asyncexample.cpp
+$(OBJDIR)/unixsocketexample.o: ../src/examples/unixsocketexample.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 

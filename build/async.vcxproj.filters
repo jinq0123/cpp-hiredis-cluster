@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{89AF369E-F58E-B539-FEA6-40106A051C9B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\adapters">
+      <UniqueIdentifier>{ACD3CD41-98CC-EC93-C1FE-D118AD56CC9F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{2DAB880B-99B4-887C-2230-9F7C8E38947C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\examples">
+      <UniqueIdentifier>{7BDBAAE1-673E-3A86-10C4-723CFC050609}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\adapters\adapter.h">
+      <Filter>include\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\adapters\boostasioadapter.h">
+      <Filter>include\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\adapters\libeventadapter.h">
+      <Filter>include\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\asynchirediscommand.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cluster.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\clusterexception.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\container.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\hirediscommand.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\hiredisprocess.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\slothash.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\examples\asyncexample.cpp">
+      <Filter>src\examples</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

@@ -13,3 +13,7 @@ Use cpp-hiredis-cluster.sln or Makefile.
     ./premake5 --os=linux gmake
 
 ## Change premake5.lua
+
+* boost, hiredis and other libraries are default in deps dir.
+  You can add your include dirs in includedirs{}.
+* You can add additional library dirs in libdirs{}.  

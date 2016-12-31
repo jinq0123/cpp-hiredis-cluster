@@ -11,26 +11,89 @@ ifndef verbose
 endif
 
 ifeq ($(config),debug)
-  asyncexample_config = debug
+  async_config = debug
+  asyncasio_config = debug
+  asyncerr_config = debug
+  testing_config = debug
+  sync_config = debug
+  unix_config = debug
+  threadedpool_config = debug
+  testing_disconnect_cluster_config = debug
 endif
 ifeq ($(config),release)
-  asyncexample_config = release
+  async_config = release
+  asyncasio_config = release
+  asyncerr_config = release
+  testing_config = release
+  sync_config = release
+  unix_config = release
+  threadedpool_config = release
+  testing_disconnect_cluster_config = release
 endif
 
-PROJECTS := asyncexample
+PROJECTS := async asyncasio asyncerr testing sync unix threadedpool testing_disconnect_cluster
 
 .PHONY: all clean help $(PROJECTS) 
 
 all: $(PROJECTS)
 
-asyncexample:
-ifneq (,$(asyncexample_config))
-	@echo "==== Building asyncexample ($(asyncexample_config)) ===="
-	@${MAKE} --no-print-directory -C . -f asyncexample.make config=$(asyncexample_config)
+async:
+ifneq (,$(async_config))
+	@echo "==== Building async ($(async_config)) ===="
+	@${MAKE} --no-print-directory -C . -f async.make config=$(async_config)
+endif
+
+asyncasio:
+ifneq (,$(asyncasio_config))
+	@echo "==== Building asyncasio ($(asyncasio_config)) ===="
+	@${MAKE} --no-print-directory -C . -f asyncasio.make config=$(asyncasio_config)
+endif
+
+asyncerr:
+ifneq (,$(asyncerr_config))
+	@echo "==== Building asyncerr ($(asyncerr_config)) ===="
+	@${MAKE} --no-print-directory -C . -f asyncerr.make config=$(asyncerr_config)
+endif
+
+testing:
+ifneq (,$(testing_config))
+	@echo "==== Building testing ($(testing_config)) ===="
+	@${MAKE} --no-print-directory -C . -f testing.make config=$(testing_config)
+endif
+
+sync:
+ifneq (,$(sync_config))
+	@echo "==== Building sync ($(sync_config)) ===="
+	@${MAKE} --no-print-directory -C . -f sync.make config=$(sync_config)
+endif
+
+unix:
+ifneq (,$(unix_config))
+	@echo "==== Building unix ($(unix_config)) ===="
+	@${MAKE} --no-print-directory -C . -f unix.make config=$(unix_config)
+endif
+
+threadedpool:
+ifneq (,$(threadedpool_config))
+	@echo "==== Building threadedpool ($(threadedpool_config)) ===="
+	@${MAKE} --no-print-directory -C . -f threadedpool.make config=$(threadedpool_config)
+endif
+
+testing_disconnect_cluster:
+ifneq (,$(testing_disconnect_cluster_config))
+	@echo "==== Building testing_disconnect_cluster ($(testing_disconnect_cluster_config)) ===="
+	@${MAKE} --no-print-directory -C . -f testing_disconnect_cluster.make config=$(testing_disconnect_cluster_config)
 endif
 
 clean:
-	@${MAKE} --no-print-directory -C . -f asyncexample.make clean
+	@${MAKE} --no-print-directory -C . -f async.make clean
+	@${MAKE} --no-print-directory -C . -f asyncasio.make clean
+	@${MAKE} --no-print-directory -C . -f asyncerr.make clean
+	@${MAKE} --no-print-directory -C . -f testing.make clean
+	@${MAKE} --no-print-directory -C . -f sync.make clean
+	@${MAKE} --no-print-directory -C . -f unix.make clean
+	@${MAKE} --no-print-directory -C . -f threadedpool.make clean
+	@${MAKE} --no-print-directory -C . -f testing_disconnect_cluster.make clean
 
 help:
 	@echo "Usage: make [config=name] [target]"
@@ -42,6 +105,13 @@ help:
 	@echo "TARGETS:"
 	@echo "   all (default)"
 	@echo "   clean"
-	@echo "   asyncexample"
+	@echo "   async"
+	@echo "   asyncasio"
+	@echo "   asyncerr"
+	@echo "   testing"
+	@echo "   sync"
+	@echo "   unix"
+	@echo "   threadedpool"
+	@echo "   testing_disconnect_cluster"
 	@echo ""
 	@echo "For more information, see http://industriousone.com/premake/quick-start"

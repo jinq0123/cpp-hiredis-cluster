@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{0F09299F-FB6B-B843-A4F1-F0F9903384C6}</ProjectGuid>
+    <ProjectGuid>{4FCBEAA0-BB35-9F17-0474-50BD701D7D6C}</ProjectGuid>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>asyncexample</RootNamespace>
+    <RootNamespace>asyncasio</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -42,15 +42,15 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>..\bin\Debug\</OutDir>
-    <IntDir>obj\Debug\</IntDir>
-    <TargetName>asyncexample</TargetName>
+    <IntDir>obj\Debug\asyncasio\</IntDir>
+    <TargetName>asyncasio</TargetName>
     <TargetExt>.exe</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\bin\Release\</OutDir>
-    <IntDir>obj\Release\</IntDir>
-    <TargetName>asyncexample</TargetName>
+    <IntDir>obj\Release\asyncasio\</IntDir>
+    <TargetName>asyncasio</TargetName>
     <TargetExt>.exe</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -66,7 +66,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>hiredis.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\deps\hiredis\Debug;..\deps\boost\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\deps\boost\lib;..\deps\hiredis\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
@@ -89,14 +89,14 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>hiredis.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\deps\hiredis\Debug;..\deps\boost\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\deps\boost\lib;..\deps\hiredis\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\deps\hiredis-boostasio-adapter\boostasio.hpp" />
     <ClInclude Include="..\include\adapters\adapter.h" />
     <ClInclude Include="..\include\adapters\boostasioadapter.h" />
+    <ClInclude Include="..\include\adapters\libeventadapter.h" />
     <ClInclude Include="..\include\asynchirediscommand.h" />
     <ClInclude Include="..\include\cluster.h" />
     <ClInclude Include="..\include\clusterexception.h" />
@@ -106,8 +106,8 @@
     <ClInclude Include="..\include\slothash.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\deps\hiredis-boostasio-adapter\boostasio.cpp" />
-    <ClCompile Include="..\src\examples\asyncexample.cpp" />
+    <ClCompile Include="..\include\adapters\hiredis-boostasio-adapter\boostasio.cpp" />
+    <ClCompile Include="..\src\examples\asyncexampleasio.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

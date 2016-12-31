@@ -6,6 +6,7 @@ Usage:
 ]]
 
 workspace "cpp-hiredis-cluster"
+	kind "ConsoleApp"
 	configurations { "Debug", "Release" }
 	targetdir "../bin/%{cfg.buildcfg}"
 	language "C++"
@@ -13,22 +14,9 @@ workspace "cpp-hiredis-cluster"
 		"C++11",
 		"StaticRuntime",
 	}
-	filter "configurations:Debug"
-		flags { "Symbols" }
-	filter "configurations:Release"
-		defines { "NDEBUG" }
-		optimize "On"
-	filter {}
-
-project "asyncexample"
-	kind "ConsoleApp"
 	files {
-		"../src/examples/asyncexample.cpp",
-		"../deps/hiredis-boostasio-adapter/boostasio.*",
-		"../include/*.h",
-		"../include/adapters/adapter.h",
-		"../include/adapters/boostasioadapter.h",
-	}    
+		"../include/**.h",
+	}
 	includedirs {
 		"../include",
 		"../deps",
@@ -36,11 +24,48 @@ project "asyncexample"
 		"../deps/boost",
 	}
 	libdirs {
-		"../deps/hiredis/Debug",
 		"../deps/boost/lib",
 	}
-	links {
-		"hiredis",
-		"ws2_32",
+	
+	filter "configurations:Debug"
+		flags { "Symbols" }
+		libdirs { "../deps/hiredis/Debug" }
+	filter "configurations:Release"
+		defines { "NDEBUG" }
+		optimize "On"
+		libdirs { "../deps/hiredis/Release" }
+	filter {}
+
+	if os.is("windows") then
+		links {
+			"hiredis",
+			"ws2_32",
+		}
+	end  -- if
+
+project "async"
+	files { "../src/examples/asyncexample.cpp" }
+
+project "asyncasio"
+	files {
+		"../src/examples/asyncexampleasio.cpp",
+		"../include/adapters/hiredis-boostasio-adapter/boostasio.cpp",
 	}
 	
+project "asyncerr"
+	files { "../src/examples/asyncerrorshandling.cpp" }
+
+project "testing"
+	files { "../src/testing/testing.cpp" }
+
+project "sync"
+	files { "../src/examples/example.cpp" }
+
+project "unix"
+	files { "../src/examples/unixsocketexample.cpp" }
+
+project "threadedpool"
+	files { "../src/examples/threadpool.cpp" }
+
+project "testing_disconnect_cluster"
+	files { "../src/testing/clusterdisconnect.cpp" }
