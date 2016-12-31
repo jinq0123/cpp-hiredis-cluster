@@ -24,6 +24,9 @@
     <ClInclude Include="..\include\adapters\boostasioadapter.h">
       <Filter>include\adapters</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\adapters\hiredis-boostasio-adapter\boostasio.hpp">
+      <Filter>include\adapters\hiredis-boostasio-adapter</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\adapters\libeventadapter.h">
       <Filter>include\adapters</Filter>
     </ClInclude>

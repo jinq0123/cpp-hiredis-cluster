@@ -46,7 +46,6 @@ void processAsyncCommand()
     /*loop forever, ever, even if there is no work queued*/
     boost::asio::io_service::work forever(io_service);
 
-
     signal(SIGPIPE, SIG_IGN);
     string *demoData = new string("Demo data is ok");
     

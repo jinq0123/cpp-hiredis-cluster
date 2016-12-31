@@ -16,6 +16,7 @@ workspace "cpp-hiredis-cluster"
 	}
 	files {
 		"../include/**.h",
+		"../include/**.hpp",
 	}
 	includedirs {
 		"../include",
