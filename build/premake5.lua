@@ -39,6 +39,10 @@ workspace "cpp-hiredis-cluster"
 	filter {}
 
 	if os.is("windows") then
+		defines {
+			"SIGPIPE=13",
+			"usleep=(void)",
+		}
 		links {
 			"hiredis",
 			"ws2_32",

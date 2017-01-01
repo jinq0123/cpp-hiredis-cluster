@@ -1,7 +1,10 @@
 #include <iostream>
 #include <event2/event.h>
 #include <signal.h>
+
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 #include "asynchirediscommand.h"
 #include <adapters/libeventadapter.h>
