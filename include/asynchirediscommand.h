@@ -31,7 +31,6 @@
 
 #include <assert.h>
 #include <functional>  // for function<>
-#include <iostream>
 
 #include "adapters/adapter.h"  // for Adapter
 #include "cluster.h"

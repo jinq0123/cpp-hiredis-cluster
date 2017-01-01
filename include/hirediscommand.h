@@ -29,7 +29,6 @@
 #ifndef __libredisCluster__command__
 #define __libredisCluster__command__
 
-#include <iostream>
 #include "cluster.h"
 #include "hiredisprocess.h"
 #include <memory>

@@ -7,12 +7,7 @@ extern "C"
 #include <hiredis/async.h>
 }
 
-#include <iostream>
-#include <string>
-#include <stdio.h>
-
 #include <boost/asio.hpp>
-#include <boost/bind.hpp>
 
 using boost::asio::ip::tcp;
 

@@ -1,5 +1,6 @@
 #include "boostasio.hpp"
 
+#include <boost/bind.hpp>
 
 redisBoostClient::redisBoostClient(boost::asio::io_service& io_service,redisAsyncContext *ac)
 	: context_(ac),
