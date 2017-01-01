@@ -268,7 +268,7 @@ namespace RedisCluster
             
             if( commandState == RETRY )
             {
-                retry( con, r, data );
+                retry( con, *reply, data );
             }
             else if( commandState == FINISH )
             {
@@ -326,7 +326,7 @@ namespace RedisCluster
             
             if( commandState == RETRY )
             {
-                retry( con, r, data );
+                retry( con, *reply, data );
             }
             else if( commandState == FINISH )
             {
@@ -336,7 +336,7 @@ namespace RedisCluster
             }
         }
         
-        static void retry( Connection *con, void *r, void *data )
+        static void retry( Connection *con, const redisReply &reply, void *data )
         {
             AsyncHiredisCommand* that = static_cast<AsyncHiredisCommand*>( data );
             
@@ -344,9 +344,7 @@ namespace RedisCluster
             {
                 // XXX check NULL
                 that->userErrorCb_( *that, DisconnectedException(), HiredisProcess::FAILED );
-                assert(r);
-                redisReply *reply = static_cast< redisReply* >(r);
-                that->runRedisCallback( *reply );
+                that->runRedisCallback( reply );
                 delete that;
             }
         }
