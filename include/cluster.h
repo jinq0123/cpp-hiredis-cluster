@@ -83,10 +83,10 @@ namespace RedisCluster
                 pt2RedisConnectFunc connect,
                 pt2RedisFreeFunc disconnect,
                 void *conData,
-                DestructCb destructdb = nullptr,
+                DestructCb destructCb = nullptr,
                 void *destructdata = nullptr) :
         connections_( new  ConnectionContainer( connect, disconnect, conData ) ),
-        destructCallback_(destructdb),
+        destructCallback_(destructCb),
         destructData(destructdata),
         userMovedFn_(NULL),
         readytouse_( false ),
