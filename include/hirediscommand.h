@@ -182,7 +182,7 @@ namespace RedisCluster
         }
         
         redisReply* processHiredisCommand( Connection *con ) {
-            redisReply* reply;
+            redisReply* reply = nullptr;
             redisAppendFormattedCommand( con, cmd_, len_ );
             redisGetReply( con, (void**)&reply );
             return reply;
