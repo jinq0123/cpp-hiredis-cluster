@@ -175,7 +175,7 @@ namespace RedisCluster
             const RedisCallback& redisCallback = RedisCallback()) :
         cluster_p_( cluster_p ),
         redisCallback_( redisCallback ),
-        con_( {"",  NULL} ),
+        hostCon_( {"",  NULL} ),
         key_( key ) {
             if(!cluster_p)
                 throw InvalidArgument(nullptr);
@@ -191,7 +191,7 @@ namespace RedisCluster
             const RedisCallback& redisCallback = RedisCallback()) :
         cluster_p_( cluster_p ),
         redisCallback_( redisCallback ),
-        con_( {"", NULL} ),
+        hostCon_( {"", NULL} ),
         key_( key ) {
             if(!cluster_p)
                 throw InvalidArgument(nullptr);
@@ -203,9 +203,9 @@ namespace RedisCluster
         
         ~AsyncHiredisCommand()
         {
-            if( con_.second != NULL )
+            if( hostCon_.second != NULL )
             {
-                redisAsyncDisconnect( con_.second );
+                redisAsyncDisconnect( hostCon_.second );
             }
         }
         
@@ -241,7 +241,7 @@ namespace RedisCluster
                 HiredisProcess::checkCritical(reply, false);
                 if( reply->type == REDIS_REPLY_STATUS && string(reply->str) == "OK" )
                 {
-                    if( that->processHiredisCommand( that->con_.second ) != REDIS_OK )
+                    if( that->processHiredisCommand( that->hostCon_.second ) != REDIS_OK )
                     {
                         throw AskingFailedException(nullptr);
                     }
@@ -288,18 +288,18 @@ namespace RedisCluster
                 state = HiredisProcess::processResult( reply, host, port);
                 switch (state) {
                     case HiredisProcess::ASK:
-                        if( that->con_.second == NULL )
-                            that->con_ = that->cluster_p_->createNewConnection( host, port );
-                        if ( redisAsyncCommand( that->con_.second, runRedisCallback, that, "ASKING" ) == REDIS_OK )
+                        if( that->hostCon_.second == NULL )
+                            that->hostCon_ = that->cluster_p_->createNewConnection( host, port );
+                        if ( redisAsyncCommand( that->hostCon_.second, runRedisCallback, that, "ASKING" ) == REDIS_OK )
                             commandState = ASK;
                         else
                             throw AskingFailedException(nullptr);
                         break;
                     case HiredisProcess::MOVED:
                         that->cluster_p_->moved();
-                        if( that->con_.second == NULL )
-                            that->con_ = that->cluster_p_->createNewConnection( host, port );
-                        if( that->processHiredisCommand( that->con_.second ) == REDIS_OK )
+                        if( that->hostCon_.second == NULL )
+                            that->hostCon_ = that->cluster_p_->createNewConnection( host, port );
+                        if( that->processHiredisCommand( that->hostCon_.second ) == REDIS_OK )
                             commandState = REDIRECT;
                         else
                             throw MovedFailedException(nullptr);
@@ -374,6 +374,7 @@ namespace RedisCluster
             if (redisCallback_)
                 redisCallback_( reply );
         }
+
         Action runUserErrorCb( const ClusterException &clusterException,
             HiredisProcess::processState state ) const
         {
@@ -391,7 +392,7 @@ namespace RedisCluster
         UserErrorCb userErrorCb_;
         
         // pointer to async context ( in case of redirection class creates new connection )
-        typename Cluster::HostConnection con_;
+        typename Cluster::HostConnection hostCon_;
 
         // key of redis command to find proper cluster node
         string key_;
