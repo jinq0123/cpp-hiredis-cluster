@@ -48,8 +48,7 @@ static void setCallback( const redisReply &reply )
     assert( string("OK") == reply.str );
 }
 
-AsyncHiredisCommand::Action errorHandler(const AsyncHiredisCommand &cmd,
-                                         const ClusterException &exception,
+AsyncHiredisCommand::Action errorHandler(const ClusterException &exception,
                                          HiredisProcess::processState state )
 {
     AsyncHiredisCommand::Action action = AsyncHiredisCommand::FINISH;

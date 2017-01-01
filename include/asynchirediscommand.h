@@ -73,11 +73,10 @@ namespace RedisCluster
         };
         
         typedef std::function<void (const redisReply& reply)> RedisCallback;
-        typedef Action (userErrorCallbackFn)( const AsyncHiredisCommand &,
-                                                      const ClusterException &,
-                                                      HiredisProcess::processState );
-        
-        
+        // Retry cmd if UserErrorCb returns RETRY, otherwise finish cmd.
+        typedef std::function<Action (const ClusterException &,
+            HiredisProcess::processState)> UserErrorCb;  // UserErrorCallback
+
         static inline AsyncHiredisCommand& Command(
             typename Cluster::ptr_t cluster_p,
             string key,  // todo: const
@@ -161,7 +160,7 @@ namespace RedisCluster
             return cluster;
         }
         
-        inline void setUserErrorCb( userErrorCallbackFn *userErrorCb )
+        inline void setUserErrorCb( const UserErrorCb &userErrorCb )
         {
             userErrorCb_ = userErrorCb;
         }
@@ -176,7 +175,6 @@ namespace RedisCluster
             const RedisCallback& redisCallback = RedisCallback()) :
         cluster_p_( cluster_p ),
         redisCallback_( redisCallback ),
-        userErrorCb_( NULL ),
         con_( {"",  NULL} ),
         key_( key ) {
             if(!cluster_p)
@@ -193,7 +191,6 @@ namespace RedisCluster
             const RedisCallback& redisCallback = RedisCallback()) :
         cluster_p_( cluster_p ),
         redisCallback_( redisCallback ),
-        userErrorCb_( NULL ),
         con_( {"", NULL} ),
         key_( key ) {
             if(!cluster_p)
@@ -256,7 +253,7 @@ namespace RedisCluster
             }
             catch ( const ClusterException &ce )
             {
-                if ( that->userErrorCb_ != NULL && that->userErrorCb_( *that, ce, HiredisProcess::ASK ) == RETRY )
+                if ( that->runUserErrorCb( ce, HiredisProcess::ASK ) == RETRY )
                 {
                     commandState = RETRY;
                 }
@@ -318,7 +315,7 @@ namespace RedisCluster
             }
             catch ( const ClusterException &ce )
             {
-                if ( that->userErrorCb_ != NULL && that->userErrorCb_( *that, ce, state ) == RETRY )
+                if ( that->runUserErrorCb( ce, state ) == RETRY )
                 {
                     commandState = RETRY;
                 }
@@ -342,8 +339,7 @@ namespace RedisCluster
             
             if( that->processHiredisCommand( con ) != REDIS_OK )
             {
-                // XXX check NULL
-                that->userErrorCb_( *that, DisconnectedException(), HiredisProcess::FAILED );
+                that->runUserErrorCb( DisconnectedException(), HiredisProcess::FAILED );
                 that->runRedisCallback( reply );
                 delete that;
             }
@@ -378,6 +374,12 @@ namespace RedisCluster
             if (redisCallback_)
                 redisCallback_( reply );
         }
+        Action runUserErrorCb( const ClusterException &clusterException,
+            HiredisProcess::processState state ) const
+        {
+            if (!userErrorCb_) return FINISH;
+            return userErrorCb_( clusterException, state );
+        }
 
     private:
         // pointer to shared cluster object ( cluster class is not threadsafe )
@@ -386,7 +388,7 @@ namespace RedisCluster
         // user-defined callback to redis async command
         RedisCallback redisCallback_;
         // user error handler
-        userErrorCallbackFn *userErrorCb_;
+        UserErrorCb userErrorCb_;
         
         // pointer to async context ( in case of redirection class creates new connection )
         typename Cluster::HostConnection con_;

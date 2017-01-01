@@ -18,8 +18,7 @@ using namespace std;
 // in some cases to retry send a command
 // This examples shows how to do this
 
-AsyncHiredisCommand::Action errorHandler(const AsyncHiredisCommand &cmd,
-                                         const ClusterException &exception,
+AsyncHiredisCommand::Action errorHandler(const ClusterException &exception,
                                          HiredisProcess::processState state )
 {
     AsyncHiredisCommand::Action action = AsyncHiredisCommand::FINISH;
