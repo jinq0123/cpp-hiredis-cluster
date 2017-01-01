@@ -62,7 +62,7 @@ void processAsyncCommand()
     ClusterPtr cluster_p;
     
     signal(SIGPIPE, SIG_IGN);
-    struct event_base *base = nullptr;  // XXX event_base_new();
+    struct event_base *base = event_base_new();
     string demoStr("Demo data is ok");
 
     LibeventAdapter adapter(*base);
@@ -80,9 +80,9 @@ void processAsyncCommand()
     // set error callback function
     cmd.setUserErrorCb( errorHandler );
     
-    // XXX event_base_dispatch(base);
+    event_base_dispatch(base);
     delete cluster_p;
-    // XXX event_base_free(base);
+    event_base_free(base);
 }
 
 int main(int argc, const char * argv[])
