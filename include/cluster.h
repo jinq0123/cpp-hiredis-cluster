@@ -29,7 +29,8 @@
 #ifndef __libredisCluster__cluster__
 #define __libredisCluster__cluster__
 
-#include <map>
+#include <functional>  // for std::function<>
+#include <memory>  // for unique_ptr<>
 
 extern "C"
 {
@@ -63,12 +64,15 @@ namespace RedisCluster
         typedef std::pair<SlotRange, redisConnection*> SlotConnection;
         typedef std::pair<Host, redisConnection*> HostConnection;
         
-        // definition of user connect and disconnect callbacks that can be user defined
-        typedef redisConnection* (*pt2RedisConnectFunc) ( const char*, int, void* );
-        typedef void (*pt2RedisFreeFunc) ( redisConnection* );
-        // definition of user error handling function that can be user defined
-        typedef void (*MovedCb) (void*, Cluster<redisConnection, ConnectionContainer> &);
-        typedef void (*DestructCb) (void*);
+        // connect and disconnect functors that can be user defined
+        typedef std::function<redisConnection* (const string &host, int port)>
+            RedisConnectFunc;
+        typedef std::function<void (redisConnection*)> RedisDisconnectFunc;
+
+        // moved callback function that can be used by user for logging
+        // redirections and for aborting redirections
+        typedef std::function<void ()> MovedCb;
+
         // definition of raw cluster pointer
         typedef Cluster* ptr_t;
         
@@ -80,15 +84,9 @@ namespace RedisCluster
         
         // cluster construction is based on parsing redis reply on "CLUSTER SLOTS" command
         Cluster( redisReply *reply,
-                pt2RedisConnectFunc connect,
-                pt2RedisFreeFunc disconnect,
-                void *conData,
-                DestructCb destructCb = nullptr,
-                void *destructdata = nullptr) :
-        connections_( new  ConnectionContainer( connect, disconnect, conData ) ),
-        destructCallback_(destructCb),
-        destructData(destructdata),
-        userMovedFn_(NULL),
+                const RedisConnectFunc &connect,
+                const RedisDisconnectFunc &disconnect) :
+        connections_( new  ConnectionContainer( connect, disconnect ) ),
         readytouse_( false ),
         moved_( false )
         {
@@ -98,11 +96,8 @@ namespace RedisCluster
             init(reply);
         }
         
-        ~Cluster()
+        virtual ~Cluster()
         {
-            if(destructCallback_)
-                destructCallback_(destructData);
-            delete connections_;
         }
         
         // disconnect function applicable when we want to close all async connections from callback
@@ -135,9 +130,9 @@ namespace RedisCluster
         inline void moved()
         {
             moved_ = true;
-            if( userMovedFn_ != nullptr )
+            if( userMovedCb_ )
             {
-                userMovedFn_( connections_->data_, *this );
+                userMovedCb_();
             }
         }
         // can be used to identify that cluster mey need to be reinitialized in runtime
@@ -148,9 +143,9 @@ namespace RedisCluster
         }
         // set moved callback function, that can be used by user for logging redirections
         // and for aborting redirections
-        inline void setMovedCb( MovedCb fn )
+        inline void setMovedCb( const MovedCb &fn )
         {
-            userMovedFn_ = fn;
+            userMovedCb_ = fn;
         }
         // creates new connection when HiredisCommand or AsyncHiredisCommand needs a
         // connection for follow the redirection
@@ -220,10 +215,8 @@ namespace RedisCluster
             readytouse_ = true;
         }
 
-        ConnectionContainer *connections_;
-        DestructCb destructCallback_ = nullptr;
-        void* destructData = nullptr;
-        volatile MovedCb userMovedFn_ = nullptr;
+        std::unique_ptr<ConnectionContainer> connections_;
+        MovedCb userMovedCb_;
         volatile bool readytouse_ = false;
         volatile bool moved_ = false;
     };

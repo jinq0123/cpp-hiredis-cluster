@@ -27,14 +27,14 @@ const char config[] =   "127.0.0.1:7000=/tmp/redis0.sock\n"
 // our socket in std map format (can be replaced with unordered_map if you need so)
 typedef std::map< string, string > SocketTable;
 
-redisContext *customRedisConnect( const char *ip, int port, void *data )
+redisContext *customRedisConnect( const string &ip, int port,
+    SocketTable &table )
 {
     redisContext *ctx = NULL;
-    SocketTable *table = static_cast<SocketTable*>(data);
     string hostPort( string( ip ) + ":" + std::to_string( port ) );
     
     try {
-	string filename = table->at( hostPort );
+	string filename = table.at( hostPort );
         ctx = redisConnectUnix( filename.c_str() );
     } catch ( const std::out_of_range &oor ) {
         cerr << "Can't find unix socket for " << hostPort << endl;
@@ -72,11 +72,12 @@ void processUnixSocketCluster()
     redisReply * reply;
     
     // Second, pass our custom connection function
-    cluster_p = HiredisCommand<>::createCluster( "127.0.0.1",
-                                              7000,
-                                              static_cast<void*>( &table ),
-                                              customRedisConnect,
-                                              redisFree );
+    SocketTable &tbl(table);
+    cluster_p = HiredisCommand<>::createCluster( "127.0.0.1", 7000,
+        [&tbl](const string &host, int port) {
+            return customRedisConnect(host, port, table);
+        },
+        redisFree );
     
     // That's all, we are ready to execute commands as usual
     // In case of adding nodes you need to update config

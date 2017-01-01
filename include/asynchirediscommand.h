@@ -31,6 +31,7 @@
 
 #include <assert.h>
 #include <functional>  // for function<>
+#include <memory>  // for shared_ptr<>
 
 #include "adapters/adapter.h"  // for Adapter
 #include "cluster.h"
@@ -49,6 +50,7 @@ namespace RedisCluster
     // Asynchronous command class. Use Adapter to adapt different event library.
     class AsyncHiredisCommand
     {
+    private:
         typedef Cluster<redisAsyncContext> Cluster;
         typedef redisAsyncContext Connection;
         typedef typename Cluster::ptr_t ClusterPtr;
@@ -56,8 +58,8 @@ namespace RedisCluster
         struct ConnectContext {
             Adapter *adapter;
             ClusterPtr pcluster;
-            int lifetime;
         };
+        typedef std::shared_ptr<ConnectContext> ConnectContextSptr;
         
         AsyncHiredisCommand(const AsyncHiredisCommand&) = delete;
         AsyncHiredisCommand& operator=(const AsyncHiredisCommand&) = delete;
@@ -147,9 +149,13 @@ namespace RedisCluster
             redisReply * reply = static_cast<redisReply*>( redisCommand( con, Cluster::CmdInit() ) );
             HiredisProcess::checkCritical( reply, true );
             
-            ConnectContext *cc = new ConnectContext({ &adapter, nullptr, 0});
-            ClusterPtr cluster = new Cluster(reply, connect, disconnect, (void*)cc, clusterDestructCB, static_cast<void*>(cc));
-            cc->pcluster = cluster;
+            // connect() needs a ConnectContext pointer instead of a copy,
+            //  because pcluster is set after Cluster().
+            ConnectContextSptr ccSptr(new ConnectContext{ &adapter, nullptr });
+            using namespace std::placeholders;  // for _1, _2, _3...
+            auto conFunc = std::bind(connect, _1, _2, ccSptr);
+            ClusterPtr cluster = new Cluster(reply, conFunc, disconnect);
+            ccSptr->pcluster = cluster;
             
             freeReplyObject( reply );
             redisFree( con );
@@ -157,6 +163,7 @@ namespace RedisCluster
             return cluster;
         }
         
+    public:
         inline void setUserErrorCb( const UserErrorCb &userErrorCb )
         {
             userErrorCb_ = userErrorCb;
@@ -205,12 +212,8 @@ namespace RedisCluster
                 redisAsyncDisconnect( hostCon_.second );
             }
         }
-        
-        static void clusterDestructCB(void *data) {
-            ConnectContext *context = static_cast<ConnectContext*>(data);
-            delete context;
-        }
-        
+
+    protected:
         static void disconnect(Connection *ac) {
             redisAsyncDisconnect( ac );
         }
@@ -342,25 +345,28 @@ namespace RedisCluster
             }
         }
         
-        static void disconnectCb(const struct redisAsyncContext*ctx, int status) {
-            ConnectContext *context = static_cast<ConnectContext*>(ctx->data);
-            context->lifetime--;
-            context->pcluster->deleteConnection(ctx);
+        static void disconnectCb(const struct redisAsyncContext*ctx, int /*status*/)
+        {
+            ClusterPtr clusterPtr = static_cast<ClusterPtr>(ctx->data);
+            assert(clusterPtr);
+            clusterPtr->deleteConnection(ctx);
         }
         
-        static Connection* connect( const char* host, int port, void *data )
+        static Connection* connect( const string &host, int port,
+            const ConnectContextSptr &contextSptr )
         {
-            ConnectContext *context = static_cast<ConnectContext*>(data);
-            if ( context == NULL || context->adapter == NULL )
+            assert(contextSptr);
+            const ConnectContext &context(*contextSptr);
+            if ( context.adapter == NULL )
                 throw ConnectionFailedException(nullptr);
 
-            Connection *con = redisAsyncConnect( host, port );
+            Connection *con = redisAsyncConnect( host.c_str(), port );
             if( con == NULL || con->err != 0 ||
-                context->adapter->attachContext( *con ) != REDIS_OK )
+                context.adapter->attachContext( *con ) != REDIS_OK )
                 throw ConnectionFailedException(nullptr);
 
-            context->lifetime++;
-            con->data = static_cast<void*>(context);
+            assert(context.pcluster);
+            con->data = static_cast<void*>(context.pcluster);
             redisAsyncSetDisconnectCallback(con, disconnectCb);
             return con;
         }

@@ -31,6 +31,8 @@
 
 #include "cluster.h"
 
+#include <map>
+
 namespace RedisCluster {
 
     template<typename redisConnection, typename ConnectionContainer>
@@ -50,10 +52,8 @@ namespace RedisCluster {
         
     public:
         
-        DefaultContainer( typename RCluster::pt2RedisConnectFunc conn,
-                         typename RCluster::pt2RedisFreeFunc disconn,
-                         void* userData ) :
-        data_( userData ),
+        DefaultContainer( const typename RCluster::RedisConnectFunc &conn,
+                         const typename RCluster::RedisDisconnectFunc &disconn) :
         connect_(conn),
         disconnect_(disconn)
         {
@@ -67,9 +67,7 @@ namespace RedisCluster {
         inline
         void insert( typename RCluster::SlotRange slots, const char* host, int port )
         {
-            redisConnection* conn = connect_( host,
-                                            port,
-                                            data_ );
+            redisConnection* conn = connect_( host, port );
             
             if( conn == NULL || conn->err )
             {
@@ -91,7 +89,7 @@ namespace RedisCluster {
             {
             }
             
-            typename RCluster::HostConnection conn( key, connect_( host.c_str(), std::stoi(port), data_ ) );
+            typename RCluster::HostConnection conn( key, connect_( host, std::stoi(port) ) );
             if( conn.second != NULL && conn.second->err == 0 )
             {
                 connections_.insert( conn );
@@ -176,10 +174,9 @@ namespace RedisCluster {
             cons.clear();
         }
         
-        void* data_;
     private:
-        typename RCluster::pt2RedisConnectFunc connect_;
-        typename RCluster::pt2RedisFreeFunc disconnect_;
+        typename RCluster::RedisConnectFunc connect_;
+        typename RCluster::RedisDisconnectFunc disconnect_;
         RedirectConnections connections_;
         ClusterNodes nodes_;
     };

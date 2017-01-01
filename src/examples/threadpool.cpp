@@ -49,10 +49,8 @@ class ThreadedPool
     
 public:
     
-    ThreadedPool( typename RCluster::pt2RedisConnectFunc conn,
-                 typename RCluster::pt2RedisFreeFunc disconn,
-                 void* userData ) :
-    data_( userData ),
+    ThreadedPool( const typename RCluster::RedisConnectFunc &conn,
+                 const typename RCluster::RedisDisconnectFunc &disconn ) :
     connect_(conn),
     disconnect_(disconn)
     {
@@ -68,9 +66,7 @@ public:
     {
         for( int i = 0; i < poolSize_; ++i )
         {
-            redisConnection *conn = connect_( host,
-                                            port,
-                                            data_ );
+            redisConnection *conn = connect_( host, port );
             
             if( conn == NULL || conn->err )
             {
@@ -203,10 +199,9 @@ public:
         cons.clear();
     }
     
-    void* data_;
 private:
-    typename RCluster::pt2RedisConnectFunc connect_;
-    typename RCluster::pt2RedisFreeFunc disconnect_;
+    typename RCluster::RedisConnectFunc connect_;
+    typename RCluster::RedisDisconnectFunc disconnect_;
     RedirectConnections connections_;
     ClusterNodes nodes_;
     std::mutex conLock_;

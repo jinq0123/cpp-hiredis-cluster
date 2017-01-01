@@ -58,12 +58,12 @@ namespace RedisCluster
         
     public:
         
-        static typename Cluster::ptr_t createCluster(const char* host,
-                                                          int port,
-                                                          void* data = NULL,
-                                                          typename Cluster::pt2RedisConnectFunc conn = connectFunction,
-                                                          typename Cluster::pt2RedisFreeFunc free = freeFunction,
-                                                          const struct timeval &timeout = { 3, 0 } )
+        static typename Cluster::ptr_t createCluster(
+            const char* host,
+            int port,
+            const typename Cluster::RedisConnectFunc &connect = connectFunction,
+            const typename Cluster::RedisDisconnectFunc &disconnect = freeFunction,
+            const struct timeval &timeout = { 3, 0 } )
         {
             typename Cluster::ptr_t cluster(NULL);
             redisReply *reply = nullptr;
@@ -75,7 +75,7 @@ namespace RedisCluster
             reply = static_cast<redisReply*>( redisCommand( con, Cluster::CmdInit() ) );
             HiredisProcess::checkCritical( reply, true );
 
-            cluster = new Cluster( reply, conn, free, data );
+            cluster = new Cluster( reply, connect, disconnect );
             
             freeReplyObject( reply );
             redisFree( con );
@@ -248,9 +248,9 @@ namespace RedisCluster
             return reply;
         }
         
-        static Connection* connectFunction( const char* host, int port, void * )
+        static Connection* connectFunction( const string &host, int port )
         {
-            return redisConnect( host, port);
+            return redisConnect( host.c_str(), port );
         }
         
         static void freeFunction( Connection* con )
