@@ -50,7 +50,7 @@ void processAsyncCommand()
     
     cluster_p = AsyncHiredisCommand::createCluster( "127.0.0.1", 7000, adapter );
     
-    AsyncHiredisCommand::Command( cluster_p,
+    AsyncHiredisCommand::commandf( *cluster_p,
                                  "FOO",
                                  [cluster_p, demoData](const redisReply &reply) {
                                     setCallback(cluster_p, reply, demoData);

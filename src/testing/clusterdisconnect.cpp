@@ -46,7 +46,7 @@ void processAsyncCommand()
     
     while (true) {
         string demoStr("Demo data is ok");
-        AsyncHiredisCommand::Command( cluster_p,
+        AsyncHiredisCommand::commandf( *cluster_p,
                                            "FOO",
                                            [cluster_p, demoStr](const redisReply& reply) {
                                                 setCallback(cluster_p, reply, demoStr);

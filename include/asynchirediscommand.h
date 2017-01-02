@@ -48,6 +48,7 @@ namespace RedisCluster
     using std::string;
     
     // Asynchronous command class. Use Adapter to adapt different event library.
+    // Copyable.
     class AsyncHiredisCommand
     {
     private:
@@ -60,12 +61,38 @@ namespace RedisCluster
             ClusterPtr pcluster;
         };
         typedef std::shared_ptr<ConnectContext> ConnectContextSptr;
-        
-        AsyncHiredisCommand(const AsyncHiredisCommand&) = delete;
-        AsyncHiredisCommand& operator=(const AsyncHiredisCommand&) = delete;
-        
+
     public:
-        
+        // Utility to format string.
+        static inline string formatf( const char *pformat, ... )
+        {
+            va_list ap;
+            va_start( ap, pformat );
+            string s = vformat( pformat, ap );
+            va_end( ap );
+            return s;
+        }
+
+        static inline string vformat( const string &formatStr, va_list ap )
+        {
+            char * buf = nullptr;
+            int len = redisvFormatCommand( &buf, formatStr.c_str(), ap );
+            string s( buf, len );
+            redisFreeCommand( buf );
+            return s;
+        }
+
+        static inline string formatArgv( int argc, const char ** argv,
+                                    const size_t *argvlen )
+        {
+            sds buf = nullptr;
+            int len = redisFormatSdsCommandArgv( &buf, argc, argv, argvlen );
+            string s( static_cast<char*>(buf), len );
+            redisFreeSdsCommand( buf );
+            return s;
+        }
+
+    public:
         enum Action
         {
             REDIRECT,
@@ -79,62 +106,82 @@ namespace RedisCluster
         typedef std::function<Action (const ClusterException &,
             HiredisProcess::processState)> UserErrorCb;  // UserErrorCallback
 
-        static inline AsyncHiredisCommand& Command(
-            ClusterPtr cluster_p,
-            string key,  // todo: const
-            int argc,
-            const char ** argv,
-            const size_t *argvlen,
-            const RedisCallback& redisCallback = RedisCallback())
+        static inline void commandStr( Cluster &cluster, const string &key,
+            const string &cmdStr,
+            const RedisCallback& redisCallback = RedisCallback(),
+            const UserErrorCb& userErrorCb = UserErrorCb() )
         {
-            // would be deleted in redis reply callback or in case of error
-            AsyncHiredisCommand *c = new AsyncHiredisCommand(
-                cluster_p, key, argc, argv, argvlen, redisCallback );
-            if( c->process() != REDIS_OK )
-            {
-                delete c;
+            AsyncHiredisCommand cmd( cluster );
+            cmd.setKey( key );
+            cmd.setCmd( cmdStr );
+            cmd.setRedisCallback( redisCallback );
+            cmd.setUserErrorCb( userErrorCb );
+            if( cmd.process() != REDIS_OK )
                 throw DisconnectedException();
-            }
-            return *c;
-        }
-        
-        static inline AsyncHiredisCommand& Command(
-            ClusterPtr cluster_p,
-            string key,
-            const RedisCallback& redisCallback,
-            const char *format, ... )
-        {
-            va_list ap;
-            va_start(ap, format);
-            // would be deleted in redis reply callback or in case of error
-            AsyncHiredisCommand *c = new AsyncHiredisCommand(
-                cluster_p, key, format, ap, redisCallback );
-            if( c->process() != REDIS_OK )
-            {
-                delete c;
-                throw DisconnectedException();
-            }
-            va_end(ap);
-            return *c;
-        }
-        
-        static inline AsyncHiredisCommand& Command(
-            ClusterPtr cluster_p,
-            string key,
-            const char *format, va_list ap,
-            const RedisCallback& redisCallback = RedisCallback())
-        {
-            // would be deleted in redis reply callback or in case of error
-            AsyncHiredisCommand *c = new AsyncHiredisCommand(
-                cluster_p, key, format, ap, redisCallback );
-            if( c->process() != REDIS_OK )
-            {
-                delete c;
-                throw DisconnectedException();
-            }
-            return *c;
         }
 
+        static inline void commandArgv( Cluster &cluster, const string &key,
+            int argc, const char ** argv, const size_t *argvlen,
+            const RedisCallback& redisCallback = RedisCallback(),
+            const UserErrorCb& userErrorCb = UserErrorCb() )
+        {
+            string cmdStr = formatArgv( argc, argv, argvlen );
+            commandStr( cluster, key, cmdStr, redisCallback, userErrorCb );
+        }
+        
+        static inline void commandf0( Cluster &cluster, const string &key,
+                                     const char *pformat, ... )
+        {
+            va_list ap;
+            va_start( ap, pformat );
+            string cmdStr = vformat( pformat, ap );
+            va_end( ap );
+            commandStr( cluster, key, cmdStr );
+        }
+
+        // Same as commandf1().
+        static inline void commandf( Cluster &cluster, const string &key,
+            const RedisCallback& redisCallback, const char *pformat, ... )
+        {
+            va_list ap;
+            va_start( ap, pformat );
+            string cmdStr = vformat( pformat, ap );
+            va_end( ap );
+            commandStr( cluster, key, cmdStr, redisCallback );
+        }
+
+        // Same as commandf().
+        static inline void commandf1( Cluster &cluster, const string &key,
+            const RedisCallback& redisCallback, const char *pformat, ... )
+        {
+            va_list ap;
+            va_start( ap, pformat );
+            string cmdStr = vformat( pformat, ap );
+            va_end( ap );
+            commandStr( cluster, key, cmdStr, redisCallback );
+        }
+
+        static inline void commandf2( Cluster &cluster, const string &key,
+            const RedisCallback& redisCallback, const UserErrorCb& userErrorCb,
+            const char *pformat, ... )
+        {
+            va_list ap;
+            va_start( ap, pformat );
+            string cmdStr = vformat( pformat, ap );
+            va_end(ap);
+            commandStr( cluster, key, cmdStr, redisCallback, userErrorCb );
+        }
+
+        static inline AsyncHiredisCommand& vcommand( Cluster &cluster,
+            const string &key, const string &formatStr, va_list ap,
+            const RedisCallback& redisCallback = RedisCallback(),
+            const UserErrorCb& userErrorCb = UserErrorCb() )
+        {
+            string cmdStr = vformat( formatStr, ap );
+            commandStr( cluster, key, cmdStr, redisCallback, userErrorCb);
+        }
+
+    public:
         // Todo: Allow hosts
         static ClusterPtr createCluster(
             const char* host,
@@ -164,45 +211,8 @@ namespace RedisCluster
         }
         
     public:
-        inline void setUserErrorCb( const UserErrorCb &userErrorCb )
+        explicit AsyncHiredisCommand( Cluster &cluster ) : cluster_( cluster )
         {
-            userErrorCb_ = userErrorCb;
-        }
-        
-    protected:
-        
-        AsyncHiredisCommand( ClusterPtr cluster_p,
-            string key,
-            int argc,
-            const char ** argv,
-            const size_t *argvlen,
-            const RedisCallback& redisCallback = RedisCallback()) :
-        cluster_p_( cluster_p ),
-        redisCallback_( redisCallback ),
-        hostCon_( {"",  NULL} ),
-        key_( key ) {
-            if(!cluster_p)
-                throw InvalidArgument(nullptr);
-            sds buf = nullptr;
-            int len = redisFormatSdsCommandArgv(&buf, argc, argv, argvlen);
-            cmd_ = string(static_cast<char*>(buf), len);
-            sdsfree(buf);
-        }
-        
-        AsyncHiredisCommand( ClusterPtr cluster_p,
-            string key,
-            const char *format, va_list ap,
-            const RedisCallback& redisCallback = RedisCallback()) :
-        cluster_p_( cluster_p ),
-        redisCallback_( redisCallback ),
-        hostCon_( {"", NULL} ),
-        key_( key ) {
-            if(!cluster_p)
-                throw InvalidArgument(nullptr);
-            char * buf = nullptr;
-            int len = redisvFormatCommand(&buf, format, ap);
-            cmd_ = string(buf, len);
-            free(buf);
         }
         
         ~AsyncHiredisCommand()
@@ -213,6 +223,27 @@ namespace RedisCluster
             }
         }
 
+    public:
+        inline void setKey( const string &key)
+        {
+            key_ = key;
+        }
+
+        inline void setCmd( const string &cmd )
+        {
+            cmd_ = cmd;
+        }
+
+        inline void setRedisCallback( const RedisCallback &redisCallback )
+        {
+            redisCallback_ = redisCallback;
+        }
+
+        inline void setUserErrorCb( const UserErrorCb &userErrorCb )
+        {
+            userErrorCb_ = userErrorCb;
+        }
+
     protected:
         static void disconnect(Connection *ac) {
             redisAsyncDisconnect( ac );
@@ -220,14 +251,18 @@ namespace RedisCluster
         
         inline int process()
         {
-            typename Cluster::SlotConnection con = cluster_p_->getConnection( key_ );
+            typename Cluster::SlotConnection con = cluster_.getConnection( key_ );
             return processHiredisCommand( con.second );
         }
         
         inline int processHiredisCommand( Connection* con )
         {
+            // This AsyncHiredisCommand is temporarily,
+            // so new a copy for processCommandReply(),
+            // which will delete the copy.
+            auto *copy = new AsyncHiredisCommand(*this);  // copyable
             return redisAsyncFormattedCommand( con, processCommandReply,
-                static_cast<void*>( this ), cmd_.data(), cmd_.size() );
+                static_cast<void*>( copy ), cmd_.data(), cmd_.size() );
         }
         
         static void runRedisCallback( Connection* con, void *r, void *data )
@@ -289,16 +324,16 @@ namespace RedisCluster
                 switch (state) {
                     case HiredisProcess::ASK:
                         if( that->hostCon_.second == NULL )
-                            that->hostCon_ = that->cluster_p_->createNewConnection( host, port );
+                            that->hostCon_ = that->cluster_.createNewConnection( host, port );
                         if ( redisAsyncCommand( that->hostCon_.second, runRedisCallback, that, "ASKING" ) == REDIS_OK )
                             commandState = ASK;
                         else
                             throw AskingFailedException(nullptr);
                         break;
                     case HiredisProcess::MOVED:
-                        that->cluster_p_->moved();
+                        that->cluster_.moved();
                         if( that->hostCon_.second == NULL )
-                            that->hostCon_ = that->cluster_p_->createNewConnection( host, port );
+                            that->hostCon_ = that->cluster_.createNewConnection( host, port );
                         if( that->processHiredisCommand( that->hostCon_.second ) == REDIS_OK )
                             commandState = REDIRECT;
                         else
@@ -386,8 +421,8 @@ namespace RedisCluster
         }
 
     private:
-        // pointer to cluster object ( cluster class is not thread-safe )
-        ClusterPtr cluster_p_;
+        // cluster object ( not thread-safe )
+        Cluster &cluster_;
         
         // user-defined callback to redis async command
         RedisCallback redisCallback_;

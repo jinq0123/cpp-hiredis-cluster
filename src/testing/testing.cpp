@@ -69,16 +69,15 @@ AsyncHiredisCommand::Action errorHandler(const ClusterException &exception,
 
 void getKeyVal( char *str, Cluster<redisAsyncContext>::ptr_t cluster_p )
 {
-    AsyncHiredisCommand &cmd = AsyncHiredisCommand::Command( cluster_p, str,
-        getCallback, "GET %s", str );
-    cmd.setUserErrorCb( errorHandler );
+    assert( cluster_p );
+    AsyncHiredisCommand::commandf2( *cluster_p, str,
+        getCallback, errorHandler, "GET %s", str );
 }
 
 void setKeyVal( char *str, Cluster<redisAsyncContext>::ptr_t cluster_p )
 {
-    AsyncHiredisCommand &cmd = AsyncHiredisCommand::Command( cluster_p, str,
-        setCallback, "SET %s test", str );
-    cmd.setUserErrorCb( errorHandler );
+    AsyncHiredisCommand::commandf2( *cluster_p, str,
+        setCallback, errorHandler, "SET %s test", str );
 }
 
 typedef void (*redisFunc_p) ( char *str, Cluster<redisAsyncContext>::ptr_t cluster_p );

@@ -68,17 +68,15 @@ void processAsyncCommand()
     LibeventAdapter adapter(*base);
     cluster_p = AsyncHiredisCommand::createCluster("127.0.0.1", 7000, adapter);
     
-    AsyncHiredisCommand &cmd = AsyncHiredisCommand::Command( cluster_p,
+    AsyncHiredisCommand::commandf2( *cluster_p,
                                  "FOO5",
                                  [cluster_p, demoStr](const redisReply &reply) {
                                     setCallback(cluster_p, reply, demoStr);
                                  },
+                                 errorHandler,
                                  "SET %s %s",
                                  "FOO",
                                  "BAR1");
-    
-    // set error callback function
-    cmd.setUserErrorCb( errorHandler );
     
     event_base_dispatch(base);
     delete cluster_p;
