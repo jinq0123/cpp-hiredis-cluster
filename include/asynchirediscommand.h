@@ -217,9 +217,9 @@ namespace RedisCluster
         
         ~AsyncHiredisCommand()
         {
-            if( hostCon_.second != NULL )
+            if( redirectCon_ )
             {
-                redisAsyncDisconnect( hostCon_.second );
+                redisAsyncDisconnect( redirectCon_ );
             }
         }
 
@@ -278,7 +278,7 @@ namespace RedisCluster
                 HiredisProcess::checkCritical(reply, false);
                 if( reply->type == REDIS_REPLY_STATUS && string(reply->str) == "OK" )
                 {
-                    if( that->processHiredisCommand( that->hostCon_.second ) != REDIS_OK )
+                    if( that->processHiredisCommand( that->redirectCon_ ) != REDIS_OK )
                     {
                         throw AskingFailedException(nullptr);
                     }
@@ -333,9 +333,9 @@ namespace RedisCluster
                         break;
                     case HiredisProcess::MOVED:
                         that->cluster_.moved();
-                        if( that->hostCon_.second == NULL )
-                            that->hostCon_ = that->cluster_.createNewConnection( host, port );
-                        if( that->processHiredisCommand( that->hostCon_.second ) == REDIS_OK )
+                        if( !that->redirectCon_ )
+                            that->redirectCon_ = that->cluster_.createNewConnection( host, port ).second;
+                        if( that->processHiredisCommand( that->redirectCon_ ) == REDIS_OK )
                             commandState = REDIRECT;
                         else
                             throw MovedFailedException(nullptr);
@@ -408,14 +408,14 @@ namespace RedisCluster
         int goAsking(const string &host, const string &port)
         {
             // XXX Why check NULL and new connection?
-            if ( hostCon_.second == NULL )
-                hostCon_ = cluster_.createNewConnection(host, port);
+            if ( !redirectCon_ )
+                redirectCon_ = cluster_.createNewConnection(host, port).second;
 
             // This AsyncHiredisCommand is temporarily,
             // so new a copy for askingCallbackFn(),
             // which will delete the copy.
             auto *copy = new AsyncHiredisCommand(*this);  // copyable
-            return redisAsyncCommand( hostCon_.second, askingCallbackFn,
+            return redisAsyncCommand( redirectCon_, askingCallbackFn,
                 copy, "ASKING" );
         }
 
@@ -438,7 +438,7 @@ namespace RedisCluster
         UserErrorCb userErrorCb_;
         
         // pointer to async context ( in case of redirection class creates new connection )
-        typename Cluster::HostConnection hostCon_;
+        Connection *redirectCon_ = nullptr;
 
         // key of redis command to find proper cluster node
         string key_;
