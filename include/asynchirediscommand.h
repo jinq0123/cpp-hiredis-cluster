@@ -333,8 +333,7 @@ namespace RedisCluster
                         break;
                     case HiredisProcess::MOVED:
                         that->cluster_.moved();
-                        if( !that->redirectCon_ )
-                            that->redirectCon_ = that->cluster_.createNewConnection( host, port ).second;
+                        that->redirectConnect( host, port );
                         if( that->processHiredisCommand( that->redirectCon_ ) == REDIS_OK )
                             commandState = REDIRECT;
                         else
@@ -407,9 +406,7 @@ namespace RedisCluster
 
         int goAsking(const string &host, const string &port)
         {
-            // XXX Why check NULL and new connection?
-            if ( !redirectCon_ )
-                redirectCon_ = cluster_.createNewConnection(host, port).second;
+            redirectConnect( host, port );
 
             // This AsyncHiredisCommand is temporarily,
             // so new a copy for askingCallbackFn(),
@@ -417,6 +414,13 @@ namespace RedisCluster
             auto *copy = new AsyncHiredisCommand(*this);  // copyable
             return redisAsyncCommand( redirectCon_, askingCallbackFn,
                 copy, "ASKING" );
+        }
+
+        void redirectConnect( const string &host, const string &port )
+        {
+            // XXX Why check NULL and new connection?
+            if ( redirectCon_ ) return;
+            redirectCon_ = cluster_.createNewConnection(host, port).second;
         }
 
         void retry(  Connection* con, const redisReply &reply )

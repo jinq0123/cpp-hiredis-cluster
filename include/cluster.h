@@ -156,7 +156,8 @@ namespace RedisCluster
         }
         // creates new connection when HiredisCommand or AsyncHiredisCommand needs a
         // connection for follow the redirection
-        inline HostConnection createNewConnection( string host, string port )
+        inline HostConnection createNewConnection(
+            const string &host, const string &port )
         {
             return connections_->insert(host, port);
         }
