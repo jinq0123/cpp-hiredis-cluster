@@ -61,7 +61,6 @@ namespace RedisCluster
             Adapter *adapter;
             ClusterPtr pcluster;
         };
-        typedef std::shared_ptr<ConnectContext> ConnectContextSptr;
 
     public:
         // Utility to format string.
@@ -197,12 +196,13 @@ namespace RedisCluster
             redisReply * reply = static_cast<redisReply*>( redisCommand( con, Cluster::CmdInit() ) );
             HiredisProcess::checkCritical( reply, true );
             
-            // XXX Change ccSptr to non pointer.
             ClusterPtr cluster = new Cluster;
-            ConnectContextSptr ccSptr(new ConnectContext{ &adapter, cluster });
-            using namespace std::placeholders;  // for _1, _2, _3...
-            auto conFunc = std::bind(connect, _1, _2, ccSptr);
-            cluster->init(reply, conFunc, disconnect);
+            ConnectContext cc{ &adapter, cluster };
+            cluster->init( reply,
+                [cc]( const string &host, int port ) {
+                    return connect( host, port, cc );
+                },
+                disconnect );
             
             freeReplyObject( reply );
             redisFree( con );
@@ -375,10 +375,8 @@ namespace RedisCluster
         }
         
         static Connection* connect( const string &host, int port,
-            const ConnectContextSptr &contextSptr )
+            const ConnectContext &context )
         {
-            assert(contextSptr);
-            const ConnectContext &context(*contextSptr);
             if ( context.adapter == NULL )
                 throw ConnectionFailedException(nullptr);
 
