@@ -82,18 +82,25 @@ namespace RedisCluster
             }
         };
         
+        Cluster() {}
+
         // cluster construction is based on parsing redis reply on "CLUSTER SLOTS" command
         Cluster( redisReply *reply,
                 const RedisConnectFunc &connect,
-                const RedisDisconnectFunc &disconnect) :
-        connections_( new  ConnectionContainer( connect, disconnect ) ),
-        readytouse_( false ),
-        moved_( false )
+                const RedisDisconnectFunc &disconnect)
         {
+            init( reply, connect, disconnect);
+        }
+
+        void init( redisReply *reply,
+                const RedisConnectFunc &connect,
+                const RedisDisconnectFunc &disconnect)
+        {
+            connections_.reset( new  ConnectionContainer( connect, disconnect ) );
             if( connect == NULL || disconnect == NULL )
                 throw InvalidArgument(reply);
-            // init function will parse redisReply structure
-            init(reply);
+            // parse redisReply structure
+            initFromReply(reply);
         }
         
         virtual ~Cluster()
@@ -176,10 +183,9 @@ namespace RedisCluster
         void deleteConnection(const redisConnection* con) {
             connections_->deleteConnection(con);
         }
-        
-    protected:
-        
-        void init( redisReply *reply )
+
+    private:
+        void initFromReply( redisReply *reply )
         {
             if( reply->type == REDIS_REPLY_ARRAY )
             {
@@ -215,6 +221,7 @@ namespace RedisCluster
             readytouse_ = true;
         }
 
+    private:
         std::unique_ptr<ConnectionContainer> connections_;
         MovedCb userMovedCb_;
         volatile bool readytouse_ = false;

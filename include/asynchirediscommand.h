@@ -55,6 +55,7 @@ namespace RedisCluster
         typedef Cluster<redisAsyncContext> Cluster;
         typedef redisAsyncContext Connection;
         typedef typename Cluster::ptr_t ClusterPtr;
+        typedef std::unique_ptr<AsyncHiredisCommand> Uptr;
 
         struct ConnectContext {
             Adapter *adapter;
@@ -196,13 +197,12 @@ namespace RedisCluster
             redisReply * reply = static_cast<redisReply*>( redisCommand( con, Cluster::CmdInit() ) );
             HiredisProcess::checkCritical( reply, true );
             
-            // connect() needs a ConnectContext pointer instead of a copy,
-            //  because pcluster is set after Cluster().
-            ConnectContextSptr ccSptr(new ConnectContext{ &adapter, nullptr });
+            // XXX Change ccSptr to non pointer.
+            ClusterPtr cluster = new Cluster;
+            ConnectContextSptr ccSptr(new ConnectContext{ &adapter, cluster });
             using namespace std::placeholders;  // for _1, _2, _3...
             auto conFunc = std::bind(connect, _1, _2, ccSptr);
-            ClusterPtr cluster = new Cluster(reply, conFunc, disconnect);
-            ccSptr->pcluster = cluster;
+            cluster->init(reply, conFunc, disconnect);
             
             freeReplyObject( reply );
             redisFree( con );
@@ -251,8 +251,8 @@ namespace RedisCluster
         
         inline int process()
         {
-            typename Cluster::SlotConnection con = cluster_.getConnection( key_ );
-            return processHiredisCommand( con.second );
+            typename Cluster::SlotConnection slotCon = cluster_.getConnection( key_ );
+            return processHiredisCommand( slotCon.second );
         }
         
         inline int processHiredisCommand( Connection* con )
@@ -265,10 +265,12 @@ namespace RedisCluster
                 static_cast<void*>( copy ), cmd_.data(), cmd_.size() );
         }
         
-        static void runRedisCallback( Connection* con, void *r, void *data )
+        // Callback fun of redisAsyncCommand "ASKING".
+        static void askingCallbackFn( Connection* con, void *r, void *data )
         {
             redisReply *reply = static_cast<redisReply*>(r);
-            AsyncHiredisCommand* that = static_cast<AsyncHiredisCommand*>( data );
+            assert( data );
+            Uptr that( static_cast<AsyncHiredisCommand*>( data ) );  // auto delete
             Action commandState = ASK;
 
             try
@@ -300,20 +302,21 @@ namespace RedisCluster
             
             if( commandState == RETRY )
             {
-                retry( con, *reply, data );
+                that->retry( con, *reply );
             }
             else if( commandState == FINISH )
             {
                 that->runRedisCallback( *reply );
-                if( !( con->c.flags & ( REDIS_SUBSCRIBED ) ) )
-                    delete that;
             }
         }
-        
+
+        // Callback fun of redisAsyncFormattedCommand()
         static void processCommandReply( Connection* con, void *r, void *data )
         {
+            assert( r );
+            assert( data );
             redisReply *reply = static_cast< redisReply* >(r);
-            AsyncHiredisCommand* that = static_cast<AsyncHiredisCommand*>( data );
+            Uptr that( static_cast<AsyncHiredisCommand*>( data ) );  // auto delete
             Action commandState = FINISH;
             HiredisProcess::processState state = HiredisProcess::FAILED;
             string host, port;
@@ -323,9 +326,7 @@ namespace RedisCluster
                 state = HiredisProcess::processResult( reply, host, port);
                 switch (state) {
                     case HiredisProcess::ASK:
-                        if( that->hostCon_.second == NULL )
-                            that->hostCon_ = that->cluster_.createNewConnection( host, port );
-                        if ( redisAsyncCommand( that->hostCon_.second, runRedisCallback, that, "ASKING" ) == REDIS_OK )
+                        if ( REDIS_OK == that->goAsking( host, port ) )
                             commandState = ASK;
                         else
                             throw AskingFailedException(nullptr);
@@ -358,25 +359,11 @@ namespace RedisCluster
             
             if( commandState == RETRY )
             {
-                retry( con, *reply, data );
+                that->retry( con, *reply );
             }
             else if( commandState == FINISH )
             {
                 that->runRedisCallback( *reply );
-                if( !( con->c.flags & ( REDIS_SUBSCRIBED ) ) )
-                    delete that;
-            }
-        }
-        
-        static void retry( Connection *con, const redisReply &reply, void *data )
-        {
-            AsyncHiredisCommand* that = static_cast<AsyncHiredisCommand*>( data );
-            
-            if( that->processHiredisCommand( con ) != REDIS_OK )
-            {
-                that->runUserErrorCb( DisconnectedException(), HiredisProcess::FAILED );
-                that->runRedisCallback( reply );
-                delete that;
             }
         }
         
@@ -418,6 +405,29 @@ namespace RedisCluster
         {
             if (!userErrorCb_) return FINISH;
             return userErrorCb_( clusterException, state );
+        }
+
+        int goAsking(const string &host, const string &port)
+        {
+            // XXX Why check NULL and new connection?
+            if ( hostCon_.second == NULL )
+                hostCon_ = cluster_.createNewConnection(host, port);
+
+            // This AsyncHiredisCommand is temporarily,
+            // so new a copy for askingCallbackFn(),
+            // which will delete the copy.
+            auto *copy = new AsyncHiredisCommand(*this);  // copyable
+            return redisAsyncCommand( hostCon_.second, askingCallbackFn,
+                copy, "ASKING" );
+        }
+
+        void retry(  Connection* con, const redisReply &reply )
+        {
+            if( processHiredisCommand( con ) != REDIS_OK )
+            {
+                runUserErrorCb( DisconnectedException(), HiredisProcess::FAILED );
+                runRedisCallback( reply );
+            }
         }
 
     private:
