@@ -2,7 +2,7 @@
 --[[
 Usage: 
 	windows: premake5.exe --os=windows vs2015
-	linux:  premake5.exe --os=linux gmake
+	linux:	premake5.exe --os=linux gmake
 ]]
 
 workspace "cpp-hiredis-cluster"
@@ -12,7 +12,7 @@ workspace "cpp-hiredis-cluster"
 	language "C++"
 	flags {
 		"C++11",
-		"StaticRuntime",
+		-- "StaticRuntime",
 	}
 	files {
 		"../include/**.h",
@@ -24,18 +24,28 @@ workspace "cpp-hiredis-cluster"
 		"../deps/hiredis",
 		"../deps/boost",
 		"../deps/libevent/include",
+		"../deps/libevent/build/include",
 	}
 	libdirs {
 		"../deps/boost/lib",
 	}
-	
+	links {
+		"event",
+	}
+
 	filter "configurations:Debug"
 		flags { "Symbols" }
-		libdirs { "../deps/hiredis/Debug" }
+		libdirs {
+			"../deps/hiredis/Debug",
+			"../deps/libevent/build/lib/Debug",
+		}
 	filter "configurations:Release"
 		defines { "NDEBUG" }
 		optimize "On"
-		libdirs { "../deps/hiredis/Release" }
+		libdirs {
+			"../deps/hiredis/Release",
+			"../deps/libevent/build/lib/Release",
+		}
 	filter {}
 
 	if os.is("windows") then
@@ -46,8 +56,10 @@ workspace "cpp-hiredis-cluster"
 		links {
 			"hiredis",
 			"ws2_32",
+			"event_core",
+			"event_extra",
 		}
-	end  -- if
+	end	 -- if
 
 project "async"
 	files { "../src/examples/asyncexample.cpp" }
