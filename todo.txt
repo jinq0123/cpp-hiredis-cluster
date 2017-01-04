@@ -1,2 +1,3 @@
 * Change Adapter to functor.
 * Delete container template parameter.
+* Use typedef std::shared_ptr<redisReply> Reply;
