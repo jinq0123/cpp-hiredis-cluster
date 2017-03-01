@@ -52,14 +52,14 @@ namespace RedisCluster
     class AsyncHiredisCommand
     {
     private:
-        typedef Cluster<redisAsyncContext> Cluster;
+        typedef Cluster<redisAsyncContext> Clstr;
         typedef redisAsyncContext Connection;
-        typedef typename Cluster::ptr_t ClusterPtr;
+        typedef typename Clstr::ptr_t ClstrPtr;
         typedef std::unique_ptr<AsyncHiredisCommand> Uptr;
 
         struct ConnectContext {
             Adapter *adapter;
-            ClusterPtr pcluster;
+            ClstrPtr pcluster;
         };
 
     public:
@@ -106,7 +106,7 @@ namespace RedisCluster
         typedef std::function<Action (const ClusterException &,
             HiredisProcess::processState)> UserErrorCb;  // UserErrorCallback
 
-        static inline void commandStr( Cluster &cluster, const string &key,
+        static inline void commandStr( Clstr &cluster, const string &key,
             const string &cmdStr,
             const RedisCallback& redisCallback = RedisCallback(),
             const UserErrorCb& userErrorCb = UserErrorCb() )
@@ -120,7 +120,7 @@ namespace RedisCluster
                 throw DisconnectedException();
         }
 
-        static inline void commandArgv( Cluster &cluster, const string &key,
+        static inline void commandArgv( Clstr &cluster, const string &key,
             int argc, const char ** argv, const size_t *argvlen,
             const RedisCallback& redisCallback = RedisCallback(),
             const UserErrorCb& userErrorCb = UserErrorCb() )
@@ -129,7 +129,7 @@ namespace RedisCluster
             commandStr( cluster, key, cmdStr, redisCallback, userErrorCb );
         }
         
-        static inline void commandf0( Cluster &cluster, const string &key,
+        static inline void commandf0( Clstr &cluster, const string &key,
                                      const char *pformat, ... )
         {
             va_list ap;
@@ -140,7 +140,7 @@ namespace RedisCluster
         }
 
         // Same as commandf1().
-        static inline void commandf( Cluster &cluster, const string &key,
+        static inline void commandf( Clstr &cluster, const string &key,
             const RedisCallback& redisCallback, const char *pformat, ... )
         {
             va_list ap;
@@ -151,7 +151,7 @@ namespace RedisCluster
         }
 
         // Same as commandf().
-        static inline void commandf1( Cluster &cluster, const string &key,
+        static inline void commandf1( Clstr &cluster, const string &key,
             const RedisCallback& redisCallback, const char *pformat, ... )
         {
             va_list ap;
@@ -161,7 +161,7 @@ namespace RedisCluster
             commandStr( cluster, key, cmdStr, redisCallback );
         }
 
-        static inline void commandf2( Cluster &cluster, const string &key,
+        static inline void commandf2( Clstr &cluster, const string &key,
             const RedisCallback& redisCallback, const UserErrorCb& userErrorCb,
             const char *pformat, ... )
         {
@@ -172,7 +172,7 @@ namespace RedisCluster
             commandStr( cluster, key, cmdStr, redisCallback, userErrorCb );
         }
 
-        static inline AsyncHiredisCommand& vcommand( Cluster &cluster,
+        static inline AsyncHiredisCommand& vcommand( Clstr &cluster,
             const string &key, const string &formatStr, va_list ap,
             const RedisCallback& redisCallback = RedisCallback(),
             const UserErrorCb& userErrorCb = UserErrorCb() )
@@ -183,7 +183,7 @@ namespace RedisCluster
 
     public:
         // Todo: Allow hosts
-        static ClusterPtr createCluster(
+        static ClstrPtr createCluster(
             const char* host,
             int port,
             Adapter& adapter,
@@ -193,10 +193,10 @@ namespace RedisCluster
             if( con == NULL || con->err )
                 throw ConnectionFailedException(nullptr);
             
-            redisReply * reply = static_cast<redisReply*>( redisCommand( con, Cluster::CmdInit() ) );
+            redisReply * reply = static_cast<redisReply*>( redisCommand( con, Clstr::CmdInit() ) );
             HiredisProcess::checkCritical( reply, true );
             
-            ClusterPtr cluster = new Cluster;
+            ClstrPtr cluster = new Clstr;
             ConnectContext cc{ &adapter, cluster };
             cluster->init( reply,
                 [cc]( const string &host, int port ) {
@@ -211,7 +211,7 @@ namespace RedisCluster
         }
         
     public:
-        explicit AsyncHiredisCommand( Cluster &cluster ) : cluster_( cluster )
+        explicit AsyncHiredisCommand( Clstr &cluster ) : cluster_( cluster )
         {
         }
         
@@ -251,7 +251,7 @@ namespace RedisCluster
         
         inline int process()
         {
-            typename Cluster::SlotConnection slotCon = cluster_.getConnection( key_ );
+            typename Clstr::SlotConnection slotCon = cluster_.getConnection( key_ );
             return processHiredisCommand( slotCon.second );
         }
         
@@ -368,7 +368,7 @@ namespace RedisCluster
         
         static void disconnectCb(const struct redisAsyncContext*ctx, int /*status*/)
         {
-            ClusterPtr clusterPtr = static_cast<ClusterPtr>(ctx->data);
+            ClstrPtr clusterPtr = static_cast<ClstrPtr>(ctx->data);
             assert(clusterPtr);
             clusterPtr->deleteConnection(ctx);
         }
@@ -434,7 +434,7 @@ namespace RedisCluster
 
     private:
         // cluster object ( not thread-safe )
-        Cluster &cluster_;
+        Clstr &cluster_;
         
         // user-defined callback to redis async command
         RedisCallback redisCallback_;
