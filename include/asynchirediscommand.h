@@ -29,7 +29,6 @@
 #ifndef __libredisCluster__asynchirediscommand__
 #define __libredisCluster__asynchirediscommand__
 
-#include <assert.h>
 #include <functional>  // for function<>
 #include <memory>  // for shared_ptr<>
 
@@ -275,7 +274,7 @@ namespace RedisCluster
 
             try
             {
-                HiredisProcess::checkCritical(reply, false);
+                HiredisProcess::checkCritical(reply, false, false);
                 if( reply->type == REDIS_REPLY_STATUS && string(reply->str) == "OK" )
                 {
                     if( that->processHiredisCommand( that->redirectCon_ ) != REDIS_OK )
@@ -322,7 +321,7 @@ namespace RedisCluster
             string host, port;
             
             try {
-                HiredisProcess::checkCritical( reply, false );
+                HiredisProcess::checkCritical( reply, false, false );
                 state = HiredisProcess::processResult( reply, host, port);
                 switch (state) {
                     case HiredisProcess::ASK:
