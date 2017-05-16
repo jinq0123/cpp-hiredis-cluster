@@ -29,6 +29,7 @@
 #ifndef __libredisCluster__asynchirediscommand__
 #define __libredisCluster__asynchirediscommand__
 
+#include <cassert>
 #include <functional>  // for function<>
 #include <memory>  // for shared_ptr<>
 

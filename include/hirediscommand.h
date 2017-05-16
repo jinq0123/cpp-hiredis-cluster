@@ -199,7 +199,7 @@ namespace RedisCluster
             string host, port;
 
             reply = processHiredisCommand( con.second );
-            HiredisProcess::checkCritical(reply, false, "", con.second);
+            HiredisProcess::checkCritical(reply, false, true, "", con.second);
             cluster_p_->releaseConnection( con );
 
             HiredisProcess::processState state = HiredisProcess::processResult( reply, host, port);
@@ -211,7 +211,7 @@ namespace RedisCluster
                     
                     if (hcon.second != NULL && hcon.second->err == 0) {
                         reply = asking( hcon.second );
-                        HiredisProcess::checkCritical(reply, true, "asking error");
+                        HiredisProcess::checkCritical(reply, true, true, "asking error");
                     
                         freeReplyObject( reply );
                         reply = processHiredisCommand(hcon.second);
