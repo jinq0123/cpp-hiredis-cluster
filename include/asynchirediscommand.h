@@ -106,6 +106,8 @@ namespace RedisCluster
         typedef std::function<Action (const ClusterException &,
             HiredisProcess::processState)> UserErrorCb;  // UserErrorCallback
 
+        // cmdStr must be formatted according to the Redis protocol,
+        //  like: "*2\r\n$3\r\nGET\r\n$3\r\nfoo\r\n".
         static inline void commandStr( Clstr &cluster, const string &key,
             const string &cmdStr,
             const RedisCallback& redisCallback = RedisCallback(),
