@@ -54,7 +54,7 @@ namespace RedisCluster
     private:
         typedef Cluster<redisAsyncContext> Clstr;
         typedef redisAsyncContext Connection;
-        typedef typename Clstr::ptr_t ClstrPtr;
+        typedef Clstr::ptr_t ClstrPtr;
         typedef std::unique_ptr<AsyncHiredisCommand> Uptr;
 
         struct ConnectContext {
@@ -253,7 +253,7 @@ namespace RedisCluster
         
         inline int process()
         {
-            typename Clstr::SlotConnection slotCon = cluster_.getConnection( key_ );
+            Clstr::SlotConnection slotCon = cluster_.getConnection( key_ );
             return processHiredisCommand( slotCon.second );
         }
         
