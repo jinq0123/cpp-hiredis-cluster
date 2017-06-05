@@ -36,16 +36,18 @@ void processClusterKeysSubset()
     delete cluster_p;
 }
 
-static void getCallback( const redisReply &reply )
+static void getCallback( const redisReply *reply )
 {
-    assert( REDIS_REPLY_STRING == reply.type );
-    assert( string("test") == reply.str );
+    assert( reply );
+    assert( REDIS_REPLY_STRING == reply->type );
+    assert( string("test") == reply->str );
 }
 
-static void setCallback( const redisReply &reply )
+static void setCallback( const redisReply *reply )
 {
-    assert( REDIS_REPLY_ERROR != reply.type );
-    assert( string("OK") == reply.str );
+    assert( reply );
+    assert( REDIS_REPLY_ERROR != reply->type );
+    assert( string("OK") == reply->str );
 }
 
 AsyncHiredisCommand::Action errorHandler(const ClusterException &exception,

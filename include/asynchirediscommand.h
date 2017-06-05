@@ -101,7 +101,8 @@ namespace RedisCluster
             RETRY
         };
         
-        typedef std::function<void (const redisReply& reply)> RedisCallback;
+        // hiredis will freeReplyObject(). RedisCallback must not delete the reply.
+        typedef std::function<void (const redisReply* reply)> RedisCallback;
         // Retry cmd if UserErrorCb returns RETRY, otherwise finish cmd.
         typedef std::function<Action (const ClusterException &,
             HiredisProcess::processState)> UserErrorCb;  // UserErrorCallback
@@ -304,18 +305,17 @@ namespace RedisCluster
             
             if( commandState == RETRY )
             {
-                that->retry( con, *reply );
+                that->retry( con, reply );
             }
             else if( commandState == FINISH )
             {
-                that->runRedisCallback( *reply );
+                that->runRedisCallback( reply );
             }
         }
 
         // Callback fun of redisAsyncFormattedCommand()
         static void processCommandReply( Connection* con, void *r, void *data )
         {
-            assert( r );
             assert( data );
             redisReply *reply = static_cast< redisReply* >(r);
             Uptr that( static_cast<AsyncHiredisCommand*>( data ) );  // auto delete
@@ -360,11 +360,11 @@ namespace RedisCluster
             
             if( commandState == RETRY )
             {
-                that->retry( con, *reply );
+                that->retry( con, reply );
             }
             else if( commandState == FINISH )
             {
-                that->runRedisCallback( *reply );
+                that->runRedisCallback( reply );
             }
         }
         
@@ -393,7 +393,7 @@ namespace RedisCluster
         }
 
     private:
-        void runRedisCallback( const redisReply& reply ) const
+        void runRedisCallback( const redisReply* reply ) const
         {
             if (redisCallback_)
                 redisCallback_( reply );
@@ -425,7 +425,7 @@ namespace RedisCluster
             redirectCon_ = cluster_.createNewConnection(host, port).second;
         }
 
-        void retry(  Connection* con, const redisReply &reply )
+        void retry(  Connection* con, const redisReply* reply )
         {
             if( processHiredisCommand( con ) != REDIS_OK )
             {

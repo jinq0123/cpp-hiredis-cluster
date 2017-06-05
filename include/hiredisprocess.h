@@ -99,9 +99,9 @@ namespace RedisCluster
 
         static void checkCritical( redisReply *reply, bool errorcritical, bool free_reply_obj = true,
                                    string error = "", redisContext *con = nullptr ) {
-            if(con!= NULL && con->err !=0) {
-        	    throw DisconnectedException();
-        	}
+            if (!reply || (con && con->err != 0)) {
+                throw DisconnectedException();
+            }
 
             if (reply->type == REDIS_REPLY_ERROR) {
                 // The constructors of these exception objects will free the reply object if it's not a nullptr.

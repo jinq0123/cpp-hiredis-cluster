@@ -45,12 +45,13 @@ AsyncHiredisCommand::Action errorHandler(const ClusterException &exception,
 typedef typename Cluster<redisAsyncContext>::ptr_t ClusterPtr;
 
 static void setCallback( ClusterPtr cluster_p,
-    const redisReply &reply, const string &demoStr )
+    const redisReply *reply, const string &demoStr )
 {
-    if( reply.type == REDIS_REPLY_STATUS  || reply.type == REDIS_REPLY_ERROR )
+    if( reply && ( reply->type == REDIS_REPLY_STATUS ||
+        reply->type == REDIS_REPLY_ERROR ))
     {
         cout << " Reply to SET FOO BAR " << endl;
-        cout << reply.str << endl;
+        cout << reply->str << endl;
     }
     
     cout << demoStr << endl;
@@ -70,7 +71,7 @@ void processAsyncCommand()
     
     AsyncHiredisCommand::commandf2( *cluster_p,
                                  "FOO5",
-                                 [cluster_p, demoStr](const redisReply &reply) {
+                                 [cluster_p, demoStr](const redisReply *reply) {
                                     setCallback(cluster_p, reply, demoStr);
                                  },
                                  errorHandler,

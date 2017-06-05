@@ -20,12 +20,13 @@ using std::cout;
 using std::endl;
 
 static void setCallback( typename Cluster<redisAsyncContext>::ptr_t cluster_p,
-    const redisReply &reply, const string &demoStr )
+    const redisReply *reply, const string &demoStr )
 {
-    if( reply.type == REDIS_REPLY_STATUS || reply.type == REDIS_REPLY_ERROR )
+    if( reply && ( reply->type == REDIS_REPLY_STATUS ||
+        reply->type == REDIS_REPLY_ERROR ))
     {
         cout << " Reply to SET FOO BAR " << endl;
-        cout << reply.str << endl;
+        cout << reply->str << endl;
     }
     
     cout << demoStr << endl;
@@ -48,7 +49,7 @@ void processAsyncCommand()
         string demoStr("Demo data is ok");
         AsyncHiredisCommand::commandf( *cluster_p,
                                            "FOO",
-                                           [cluster_p, demoStr](const redisReply& reply) {
+                                           [cluster_p, demoStr](const redisReply* reply) {
                                                 setCallback(cluster_p, reply, demoStr);
                                            },
                                            "SET %s %s",
