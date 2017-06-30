@@ -68,7 +68,7 @@ namespace RedisCluster {
     class MovedFailedException : public BadStateException {
     public:
         MovedFailedException(redisReply *reply) : BadStateException(reply, std::string(
-                "error while processing asking command")) {}
+                "error while processing moved command")) {}
     };
 
     class ConnectionFailedException : public CriticalException {
