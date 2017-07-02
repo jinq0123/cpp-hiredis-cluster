@@ -5,4 +5,5 @@ Copy these dirs:
 * hiredis
     + git@github.com:wasppdotorg/hiredis-for-windows.git
     + rename to hiredis for "#include <hiredis/hiredis.h>"
+* libevent
     
