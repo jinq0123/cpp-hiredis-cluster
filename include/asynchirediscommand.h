@@ -225,6 +225,8 @@ namespace RedisCluster
         
         ~AsyncHiredisCommand()
         {
+            assert(isSanity());
+            assert(0 == (sanity_ = 0));
             if( redirectCon_ )
             {
                 redisAsyncDisconnect( redirectCon_ );
@@ -265,6 +267,7 @@ namespace RedisCluster
         
         inline int processHiredisCommand( Connection* con )
         {
+            assert(isSanity());
             return redisAsyncFormattedCommand( con, processCommandReply,
                 this, cmd_.data(), cmd_.size() );
         }
@@ -272,8 +275,8 @@ namespace RedisCluster
         // Callback fun of redisAsyncCommand "ASKING".
         static void askingCallbackFn( Connection* con, void *r, void *data )
         {
+            assert(data);
             redisReply *reply = static_cast<redisReply*>(r);
-            assert( data );
             auto* that = static_cast<AsyncHiredisCommand*>(data);
             Action commandState = ASK;
 
@@ -402,6 +405,7 @@ namespace RedisCluster
     private:
         void runRedisCallback( const redisReply* reply ) const
         {
+            assert(isSanity());
             if (redisCallback_)
                 redisCallback_( reply );
         }
@@ -409,12 +413,14 @@ namespace RedisCluster
         Action runUserErrorCb( const ClusterException &clusterException,
             HiredisProcess::processState state ) const
         {
+            assert(isSanity());
             if (!userErrorCb_) return FINISH;
             return userErrorCb_( clusterException, state );
         }
 
         int goAsking(const string &host, const string &port)
         {
+            assert(isSanity());
             redirectConnect( host, port );
             return redisAsyncCommand( redirectCon_, askingCallbackFn,
                 this, "ASKING" );
@@ -428,6 +434,7 @@ namespace RedisCluster
 
         bool retry(  Connection* con, const redisReply* reply )
         {
+            assert(isSanity());
             if (processHiredisCommand(con) == REDIS_OK)
                 return true;
 
@@ -451,6 +458,11 @@ namespace RedisCluster
         // key of redis command to find proper cluster node
         string key_;
         string cmd_;
+
+#ifndef NDEBUG
+        bool isSanity() const { return 0xa5a5a5a5 == sanity_; }
+        int sanity_ = 0xa5a5a5a5;  // for sanity check
+#endif
     };
 }
 
