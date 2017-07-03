@@ -116,13 +116,16 @@ namespace RedisCluster
             const RedisCallback& redisCallback = RedisCallback(),
             const UserErrorCb& userErrorCb = UserErrorCb() )
         {
-            AsyncHiredisCommand cmd( cluster );
-            cmd.setKey( key );
-            cmd.setCmd( cmdStr );
-            cmd.setRedisCallback( redisCallback );
-            cmd.setUserErrorCb( userErrorCb );
-            if( cmd.process() != REDIS_OK )
-                throw DisconnectedException();
+            AsyncHiredisCommand* cmd(new AsyncHiredisCommand(cluster));
+            cmd->setKey( key );
+            cmd->setCmd( cmdStr );
+            cmd->setRedisCallback( redisCallback );
+            cmd->setUserErrorCb( userErrorCb );
+            if (cmd->process() == REDIS_OK)
+                return;
+
+            delete cmd;
+            throw DisconnectedException();
         }
 
         static inline void commandArgv( Clstr &cluster, const string &key,
@@ -215,7 +218,7 @@ namespace RedisCluster
             return cluster;
         }
         
-    public:
+    protected:
         explicit AsyncHiredisCommand( Clstr &cluster ) : cluster_( cluster )
         {
         }
