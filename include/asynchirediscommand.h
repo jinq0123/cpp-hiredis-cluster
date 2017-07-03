@@ -55,12 +55,14 @@ namespace RedisCluster
         typedef Cluster<redisAsyncContext> Clstr;
         typedef redisAsyncContext Connection;
         typedef Clstr::ptr_t ClstrPtr;
-        typedef std::unique_ptr<AsyncHiredisCommand> Uptr;
 
         struct ConnectContext {
             Adapter *adapter;
             ClstrPtr pcluster;
         };
+
+        AsyncHiredisCommand(const AsyncHiredisCommand&) = delete;
+        AsyncHiredisCommand& operator=(const AsyncHiredisCommand&) = delete;
 
     public:
         // Utility to format string.
@@ -260,12 +262,8 @@ namespace RedisCluster
         
         inline int processHiredisCommand( Connection* con )
         {
-            // This AsyncHiredisCommand is temporarily,
-            // so new a copy for processCommandReply(),
-            // which will delete the copy.
-            auto *copy = new AsyncHiredisCommand(*this);  // copyable
             return redisAsyncFormattedCommand( con, processCommandReply,
-                static_cast<void*>( copy ), cmd_.data(), cmd_.size() );
+                this, cmd_.data(), cmd_.size() );
         }
         
         // Callback fun of redisAsyncCommand "ASKING".
@@ -273,7 +271,7 @@ namespace RedisCluster
         {
             redisReply *reply = static_cast<redisReply*>(r);
             assert( data );
-            Uptr that( static_cast<AsyncHiredisCommand*>( data ) );  // auto delete
+            auto* that = static_cast<AsyncHiredisCommand*>(data);
             Action commandState = ASK;
 
             try
@@ -305,11 +303,14 @@ namespace RedisCluster
             
             if( commandState == RETRY )
             {
-                that->retry( con, reply );
+                if (!that->retry( con, reply ))
+                    delete that;  // retry failed
             }
             else if( commandState == FINISH )
             {
                 that->runRedisCallback( reply );
+                if (!(con->c.flags & (REDIS_SUBSCRIBED)))
+                    delete that;
             }
         }
 
@@ -318,7 +319,7 @@ namespace RedisCluster
         {
             assert( data );
             redisReply *reply = static_cast< redisReply* >(r);
-            Uptr that( static_cast<AsyncHiredisCommand*>( data ) );  // auto delete
+            auto* that = static_cast<AsyncHiredisCommand*>(data);
             Action commandState = FINISH;
             HiredisProcess::processState state = HiredisProcess::FAILED;
             string host, port;
@@ -360,11 +361,14 @@ namespace RedisCluster
             
             if( commandState == RETRY )
             {
-                that->retry( con, reply );
+                if (!that->retry( con, reply ))
+                    delete that;  // retry failed
             }
             else if( commandState == FINISH )
             {
                 that->runRedisCallback( reply );
+                if (!(con->c.flags & (REDIS_SUBSCRIBED)))
+                    delete that;
             }
         }
         
@@ -409,29 +413,24 @@ namespace RedisCluster
         int goAsking(const string &host, const string &port)
         {
             redirectConnect( host, port );
-
-            // This AsyncHiredisCommand is temporarily,
-            // so new a copy for askingCallbackFn(),
-            // which will delete the copy.
-            auto *copy = new AsyncHiredisCommand(*this);  // copyable
             return redisAsyncCommand( redirectCon_, askingCallbackFn,
-                copy, "ASKING" );
+                this, "ASKING" );
         }
 
         void redirectConnect( const string &host, const string &port )
         {
-            // XXX Why check NULL and new connection?
             if ( redirectCon_ ) return;
             redirectCon_ = cluster_.createNewConnection(host, port).second;
         }
 
-        void retry(  Connection* con, const redisReply* reply )
+        bool retry(  Connection* con, const redisReply* reply )
         {
-            if( processHiredisCommand( con ) != REDIS_OK )
-            {
-                runUserErrorCb( DisconnectedException(), HiredisProcess::FAILED );
-                runRedisCallback( reply );
-            }
+            if (processHiredisCommand(con) == REDIS_OK)
+                return true;
+
+            runUserErrorCb( DisconnectedException(), HiredisProcess::FAILED );
+            runRedisCallback( reply );
+            return false;
         }
 
     private:
